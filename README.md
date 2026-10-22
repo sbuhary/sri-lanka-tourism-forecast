@@ -54,3 +54,17 @@ GitHub Actions rebuilds the model and runs these checks on pushes to `main` and 
 For new monthly data, update the dataset and training cutoff, check the defaults and rerun training and tests before release. The fixed forecast check must be reviewed if the data or settings change. Do not replace it just to hide a failed check.
 
 These checks confirm that the app can be reproduced and run; they do not establish forecast accuracy. The app is hosted on Streamlit Community Cloud using Python 3.13. Live monitoring is not implemented. Actual forecast errors can be checked once SLTDA publishes the corresponding arrivals.
+
+
+## Experiment tracking
+
+[DagsHub project and experiments](https://dagshub.com/sbuhary/sri-lanka-tourism-forecast/experiments)
+
+```sh
+python -m pip install -r requirements-tracking.txt
+python track_experiments.py
+```
+
+Commit local changes first so each run points to the code that produced it. The DagsHub client prompts for browser sign-in when needed. Credentials stay outside the repo.
+
+The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.

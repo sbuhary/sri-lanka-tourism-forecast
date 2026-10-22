@@ -1,0 +1,3 @@
+-r requirements.txt
+mlflow-skinny==2.22.2
+dagshub==0.7.3
