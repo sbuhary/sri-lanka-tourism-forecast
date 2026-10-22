@@ -36,6 +36,7 @@ def track_experiments():
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=folder, text=True).strip()
     assert not subprocess.check_output(['git', 'status', '--porcelain'], cwd=folder, text=True).strip(), 'Commit changes before tracking a run.'
     tags = {'data_sha256': digest, 'source_commit': commit, 'mlflow.source.git.commit': commit,
+            'mlflow.source.name': 'track_experiments.py', 'mlflow.user': 'sbuhary',
             'evaluation_scope': 'development validation; not an independent test'}
 
     forest = build_pipeline(RandomForestRegressor(
@@ -76,7 +77,7 @@ def track_experiments():
             mlflow.log_metrics(scores)
             mlflow.log_dict(scores, 'validation_metrics.json')
             if name == 'Random Forest':
-                # This artifact belongs to the validation fit, not the deployed model.
+                # I keep the selected settings with the validation run.
                 mlflow.log_dict({'training_period': '2019-01 to 2023-12',
                                  'selected_settings': {'n_estimators': 150, 'max_depth': 12,
                                                        'min_samples_leaf': 5, 'random_state': 42}},
