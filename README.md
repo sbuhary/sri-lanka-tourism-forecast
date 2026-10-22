@@ -68,3 +68,5 @@ python track_experiments.py
 Commit local changes first so each run points to the code that produced it. The DagsHub client prompts for browser sign-in when needed. Credentials stay outside the repo.
 
 The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.
+
+The initial tracked comparison contains seven validation runs (five models and two baselines) and one deployment run. [tracking_results.json](tracking_results.json) records their IDs, metrics and source revision. All runs finished successfully; the stored deployment artifact was downloaded and verified against the app model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
