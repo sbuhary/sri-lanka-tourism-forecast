@@ -1,0 +1,34 @@
+name: Check and build model
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Rebuild deployment model
+        run: python train_model.py
+      - name: Check data, prediction and app
+        run: python -m unittest discover -s tests -v
+      - name: Save model and training record
+        uses: actions/upload-artifact@v4
+        with:
+          name: tourism-model-${{ github.sha }}
+          path: |
+            deployment_model.joblib
+            model_info.json
+          retention-days: 30
