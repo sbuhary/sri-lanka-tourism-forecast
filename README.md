@@ -76,7 +76,7 @@ The initial tracked comparison contains seven validation runs (five models and t
 
 Deployed and checked on 24 October 2026 in East US. The live form returned 50,522 arrivals for the default example, matching the saved model. The deployed image passed the [container checks](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40126234359).
 
-Image digest: `sha256:63a111c624df171a4d7955bfab937de9d43c9e612920d41954ae0118cd168088`. The initial deployment uses a personal Azure trial; the same template can recreate it in another subscription.
+Current image digest: `sha256:a96f5e75ae30ffee81408f1e130dbbf8ebd40a53851bd4b875e0efb030b04158`. The first [approved automated release](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40129111813) passed OIDC login, Bicep deployment and live health checks. An independent request also returned HTTP 200 (`ok`). The initial deployment uses a personal Azure trial; the same template can recreate it in another subscription.
 
 The container workflow builds and checks the app before publishing an image to GitHub Container Registry, tagged with its source commit. Make the image package public for Azure to pull it without a registry credential. The image contains only the app, dependencies and verified model files.
 
