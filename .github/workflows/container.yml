@@ -8,6 +8,10 @@ on:
       - Dockerfile
       - .dockerignore
       - app.py
+      - train_model.py
+      - Tourism_Arrivals.csv
+      - tests/**
+      - .github/workflows/checks.yml
       - requirements.txt
       - deployment_model.joblib
       - model_info.json
@@ -23,6 +27,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  model-check:
+    uses: ./.github/workflows/checks.yml
+    permissions:
+      contents: read
+
   build:
     runs-on: ubuntu-latest
     outputs:
@@ -64,7 +73,7 @@ jobs:
           echo "image=$digest" >> "$GITHUB_OUTPUT"
 
   deploy:
-    needs: build
+    needs: [model-check, build]
     runs-on: ubuntu-latest
     environment:
       name: production

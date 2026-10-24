@@ -1,6 +1,6 @@
 # Sri Lanka Tourist Arrivals Forecast
 
-[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) Â· [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
+[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) Ã‚Â· [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
 
 Predict monthly arrivals to Sri Lanka from an origin market using its recent arrival counts.
 
@@ -18,7 +18,7 @@ The saved model is included, so training is only needed to rebuild it. The datas
 
 ## Model and results
 
-I compared models trained on 2019â€“2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with RÂ² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
+I compared models trained on 2019Ã¢â‚¬â€œ2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with RÃ‚Â² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
 
 I then retrained the selected settings on all 17,053 eligible rows through September 2026: 150 trees, maximum depth 12, minimum leaf size 5 and random seed 42. The saved pipeline includes encoding and scaling. `model_info.json` records the training range, dataset hash and default inputs. This deployment model has not been separately tested.
 
@@ -49,7 +49,7 @@ Errors vary by market. Publication delays, revisions and sudden changes in trave
 python -m unittest discover -s tests -v
 ```
 
-GitHub Actions rebuilds the model and runs these checks on pushes to `main` and pull requests. It checks the dataset, saved prediction and app, then stores the model and training record as an artifact linked to the commit. Code, data and the current model are versioned together in Git.
+GitHub Actions rebuilds the model and runs these checks on relevant pushes to `main`, pull requests and manual runs. The release workflow calls the same checks as a required job. It checks the dataset, saved prediction and app, then stores the model and training record as an artifact linked to the commit. Code, data and the current model are versioned together in Git.
 
 For new monthly data, update the dataset and training cutoff, check the defaults and rerun training and tests before release. The fixed forecast check must be reviewed if the data or settings change. Do not replace it just to hide a failed check.
 
@@ -86,11 +86,11 @@ In Azure Cloud Shell (Bash), clone this repository and run:
 bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-forecast:COMMIT_SHA
 ```
 
-`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zeroâ€“one replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
+`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zeroÃ¢â‚¬â€œone replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
 
 To use another subscription later, sign into it and run the same script with its subscription ID and an available region. Reuse the tested image. Deployment permissions and the app URL may change. Verify the new app before removing the previous resources; historical logs remain in the original workspace.
 
-To update or roll back, rerun the script with the required tested image tag. Subscription IDs and credentials are not stored in this repo. GitHub Actions now builds and tests the image, waits for production approval, signs into Azure through OIDC, applies the Bicep template with the image digest and checks the live health endpoint. Only `main` can deploy. The reviewer is the account that ran setup; self-review remains allowed for this single-maintainer project. Concurrent releases are queued.
+To update or roll back, rerun the script with the required tested image tag. Subscription IDs and credentials are not stored in this repo. GitHub Actions runs the full model checks and container checks as separate required jobs. Both must succeed for the same commit before deployment can wait for production approval. After approval it signs into Azure through OIDC, applies the Bicep template with the image digest and checks the live health endpoint. Only `main` can deploy. The reviewer is the account that ran setup; self-review remains allowed for this single-maintainer project. Concurrent releases are queued.
 
 For initial setup or migration, sign into Azure and GitHub CLI with an account allowed to create identities and assign roles, then run in Bash (with `az`, `gh` and `jq` installed):
 
@@ -100,4 +100,4 @@ bash infra/setup-github.sh SUBSCRIPTION_ID REGION sbuhary/sri-lanka-tourism-fore
 
 This creates a user-assigned identity, trusts only this repository's `production` environment using its immutable owner and repository IDs, grants Contributor on this resource group and configures GitHub's approval, branch policy and environment variables. No Azure password or client secret is stored in GitHub. The deployment identity cannot grant roles. The subscription, account eligibility, GitHub repository and public GHCR package are prerequisites; this script does not create them.
 
-The first deploy after setup can be started from Actions → Build and deploy forecast → Run workflow. Future changes to app/container/infrastructure files on `main` start it automatically. Approve the pending production deployment in Actions after reviewing the build. Tracking in DagsHub remains on demand. Releases use single revisions; canary rollout, automatic rollback, drift monitoring and retraining are not implemented.
+The first deploy after setup can be started from Actions â†’ Build and deploy forecast â†’ Run workflow. Future changes to app/container/infrastructure files on `main` start it automatically. Approve the pending production deployment in Actions after reviewing the build. Tracking in DagsHub remains on demand. Releases use single revisions; canary rollout, automatic rollback, drift monitoring and retraining are not implemented.
