@@ -70,3 +70,20 @@ Commit local changes first so each run points to the code that produced it. The 
 The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.
 
 The initial tracked comparison contains seven validation runs (five models and two baselines) and one deployment run. [tracking_results.json](tracking_results.json) records their IDs, metrics and source revision. All runs finished successfully; the stored deployment artifact was downloaded and verified against the app model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
+
+
+## Azure deployment
+
+The container workflow builds and checks the app before publishing an image to GitHub Container Registry, tagged with its source commit. Make the image package public for Azure to pull it without a registry credential. The image contains only the app, dependencies and verified model files.
+
+In Azure Cloud Shell (Bash), clone this repository and run:
+
+```sh
+bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-forecast:COMMIT_SHA
+```
+
+`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zero–one replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
+
+To use another subscription later, sign into it and run the same script with its subscription ID and an available region. Reuse the tested image. Deployment permissions and the app URL may change. Verify the new app before removing the previous resources; historical logs remain in the original workspace.
+
+To update or roll back, rerun the script with the required tested image tag. Subscription IDs and credentials are not stored in this repo. Deployment currently requires an authenticated operator; GitHub builds the image but does not automatically deploy it to Azure.
