@@ -1,4 +1,4 @@
-name: Build forecast container
+name: Build and deploy forecast
 
 on:
   workflow_dispatch:
@@ -18,9 +18,15 @@ permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: azure-production
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.published.outputs.image }}
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -50,4 +56,48 @@ jobs:
           docker logs forecast
           docker stop forecast
       - name: Publish tested image
-        run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
+        id: published
+        run: |
+          image=ghcr.io/${{ github.repository }}:${{ github.sha }}
+          docker push "$image"
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$image")
+          echo "image=$digest" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.release.outputs.url }}
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Deploy tested image
+        id: release
+        env:
+          IMAGE: ${{ needs.build.outputs.image }}
+          RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+          REGION: ${{ vars.AZURE_REGION }}
+        run: |
+          url=$(az deployment group create --resource-group "$RESOURCE_GROUP" \
+            --name "release-${GITHUB_RUN_ID}" --template-file infra/main.bicep \
+            --parameters location="$REGION" image="$IMAGE" \
+            --query properties.outputs.appUrl.value --output tsv)
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Check live health
+        env:
+          APP_URL: ${{ steps.release.outputs.url }}
+        run: |
+          curl --fail --silent --show-error --retry 12 --retry-all-errors \
+            --retry-delay 10 --max-time 30 "$APP_URL/_stcore/health"
+          echo "### Azure release" >> "$GITHUB_STEP_SUMMARY"
+          echo "App: $APP_URL" >> "$GITHUB_STEP_SUMMARY"
+          echo "Image: ${{ needs.build.outputs.image }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Live health check passed." >> "$GITHUB_STEP_SUMMARY"
