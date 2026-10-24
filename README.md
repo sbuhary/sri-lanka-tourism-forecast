@@ -1,6 +1,6 @@
 # Sri Lanka Tourist Arrivals Forecast
 
-[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) Â· [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
+[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) · [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
 
 Predict monthly arrivals to Sri Lanka from an origin market using its recent arrival counts.
 
@@ -18,7 +18,7 @@ The saved model is included, so training is only needed to rebuild it. The datas
 
 ## Model and results
 
-I compared models trained on 2019â€“2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with RÂ² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
+I compared models trained on 2019–2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with R² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
 
 I then retrained the selected settings on all 17,053 eligible rows through September 2026: 150 trees, maximum depth 12, minimum leaf size 5 and random seed 42. The saved pipeline includes encoding and scaling. `models/model_info.json` records the training range, dataset hash and default inputs. This deployment model has not been separately tested.
 
@@ -86,7 +86,7 @@ In Azure Cloud Shell (Bash), clone this repository and run:
 bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-forecast:COMMIT_SHA
 ```
 
-`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zeroâ€“one replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
+`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zero–one replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
 
 To use another subscription later, sign into it and run the same script with its subscription ID and an available region. Reuse the tested image. Deployment permissions and the app URL may change. Verify the new app before removing the previous resources; historical logs remain in the original workspace.
 
