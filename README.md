@@ -1,6 +1,6 @@
 # Sri Lanka Tourist Arrivals Forecast
 
-[Open the live app](https://sri-lanka-tourism-forecast.streamlit.app/)
+[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) · [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
 
 Predict monthly arrivals to Sri Lanka from an origin market using its recent arrival counts.
 
@@ -53,7 +53,7 @@ GitHub Actions rebuilds the model and runs these checks on pushes to `main` and 
 
 For new monthly data, update the dataset and training cutoff, check the defaults and rerun training and tests before release. The fixed forecast check must be reviewed if the data or settings change. Do not replace it just to hide a failed check.
 
-These checks confirm that the app can be reproduced and run; they do not establish forecast accuracy. The app is hosted on Streamlit Community Cloud using Python 3.13. Live monitoring is not implemented. Actual forecast errors can be checked once SLTDA publishes the corresponding arrivals.
+These checks confirm that the app can be reproduced and run; they do not establish forecast accuracy. The app runs on Azure Container Apps, with Streamlit Community Cloud as a fallback. Both use Python 3.13. Azure collects container logs; forecast-error monitoring is not implemented. Actual forecast errors can be checked once SLTDA publishes the corresponding arrivals.
 
 
 ## Experiment tracking
@@ -73,6 +73,10 @@ The initial tracked comparison contains seven validation runs (five models and t
 
 
 ## Azure deployment
+
+Deployed and checked on 24 October 2026 in East US. The live form returned 50,522 arrivals for the default example, matching the saved model. The deployed image passed the [container checks](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40126234359).
+
+Image digest: `sha256:63a111c624df171a4d7955bfab937de9d43c9e612920d41954ae0118cd168088`. The initial deployment uses a personal Azure trial; the same template can recreate it in another subscription.
 
 The container workflow builds and checks the app before publishing an image to GitHub Container Registry, tagged with its source commit. Make the image package public for Azure to pull it without a registry credential. The image contains only the app, dependencies and verified model files.
 
