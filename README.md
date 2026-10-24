@@ -1,6 +1,6 @@
 # Sri Lanka Tourist Arrivals Forecast
 
-[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) Ã‚Â· [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
+[Open the Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) Â· [Streamlit fallback](https://sri-lanka-tourism-forecast.streamlit.app/)
 
 Predict monthly arrivals to Sri Lanka from an origin market using its recent arrival counts.
 
@@ -10,17 +10,17 @@ Use Python 3.13. From this folder:
 
 ```sh
 python -m pip install -r requirements.txt
-python train_model.py
+python src/train_model.py
 python -m streamlit run app.py
 ```
 
-The saved model is included, so training is only needed to rebuild it. The dataset is `Tourism_Arrivals.csv`. The analysis is in [Tourism_Arrivals_Analysis.ipynb](Tourism_Arrivals_Analysis.ipynb). Run its setup cell first; it uses the same CSV in this folder.
+The saved model is included, so training is only needed to rebuild it. The dataset is `data/Tourism_Arrivals.csv`. The analysis is in [Tourism_Arrivals_Analysis.ipynb](notebooks/Tourism_Arrivals_Analysis.ipynb). Run its setup cell first; it loads the CSV from `data/`, or lets you upload it in Colab.
 
 ## Model and results
 
-I compared models trained on 2019Ã¢â‚¬â€œ2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with RÃ‚Â² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
+I compared models trained on 2019â€“2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with RÂ² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
 
-I then retrained the selected settings on all 17,053 eligible rows through September 2026: 150 trees, maximum depth 12, minimum leaf size 5 and random seed 42. The saved pipeline includes encoding and scaling. `model_info.json` records the training range, dataset hash and default inputs. This deployment model has not been separately tested.
+I then retrained the selected settings on all 17,053 eligible rows through September 2026: 150 trees, maximum depth 12, minimum leaf size 5 and random seed 42. The saved pipeline includes encoding and scaling. `models/model_info.json` records the training range, dataset hash and default inputs. This deployment model has not been separately tested.
 
 The six inputs are country, calendar month and arrivals 1, 2, 3 and 12 months earlier. Year identifies the target period but is not a model input.
 
@@ -62,14 +62,14 @@ These checks confirm that the app can be reproduced and run; they do not establi
 
 ```sh
 python -m pip install -r requirements-tracking.txt
-python track_experiments.py
+python src/track_experiments.py
 ```
 
 Commit local changes first so each run points to the code that produced it. The DagsHub client prompts for browser sign-in when needed. Credentials stay outside the repo.
 
 The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.
 
-The initial tracked comparison contains seven validation runs (five models and two baselines) and one deployment run. [tracking_results.json](tracking_results.json) records their IDs, metrics and source revision. All runs finished successfully; the stored deployment artifact was downloaded and verified against the app model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
+The initial tracked comparison contains seven validation runs (five models and two baselines) and one deployment run. [tracking_results.json](models/tracking_results.json) records their IDs, metrics and source revision. All runs finished successfully; the stored deployment artifact was downloaded and verified against the app model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
 
 
 ## Azure deployment
@@ -86,7 +86,7 @@ In Azure Cloud Shell (Bash), clone this repository and run:
 bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-forecast:COMMIT_SHA
 ```
 
-`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zeroÃ¢â‚¬â€œone replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
+`infra/main.bicep` creates a Container Apps Consumption environment, the app and a Log Analytics workspace. Scaling is limited to zeroâ€“one replica; logs have 30-day retention and a 0.1 GB daily ingestion cap. These settings reduce usage but do not guarantee zero cost. No Azure Container Registry or virtual machine is required.
 
 To use another subscription later, sign into it and run the same script with its subscription ID and an available region. Reuse the tested image. Deployment permissions and the app URL may change. Verify the new app before removing the previous resources; historical logs remain in the original workspace.
 
@@ -100,4 +100,18 @@ bash infra/setup-github.sh SUBSCRIPTION_ID REGION sbuhary/sri-lanka-tourism-fore
 
 This creates a user-assigned identity, trusts only this repository's `production` environment using its immutable owner and repository IDs, grants Contributor on this resource group and configures GitHub's approval, branch policy and environment variables. No Azure password or client secret is stored in GitHub. The deployment identity cannot grant roles. The subscription, account eligibility, GitHub repository and public GHCR package are prerequisites; this script does not create them.
 
-The first deploy after setup can be started from Actions â†’ Build and deploy forecast â†’ Run workflow. Future changes to app/container/infrastructure files on `main` start it automatically. Approve the pending production deployment in Actions after reviewing the build. Tracking in DagsHub remains on demand. Releases use single revisions; canary rollout, automatic rollback, drift monitoring and retraining are not implemented.
+The first deploy after setup can be started from Actions → Build and deploy forecast → Run workflow. Future changes to app/container/infrastructure files on `main` start it automatically. Approve the pending production deployment in Actions after reviewing the build. Tracking in DagsHub remains on demand. Releases use single revisions; canary rollout, automatic rollback, drift monitoring and retraining are not implemented.
+
+
+## Project layout
+
+```text
+app.py          Streamlit frontend
+src/            Training and experiment tracking
+data/           Consolidated dataset
+models/         Saved model, metadata and tracking references
+notebooks/      Analysis and model comparison
+tests/          Data, inference and app checks
+infra/          Azure resources and setup scripts
+.github/        CI and approved deployment workflows
+```

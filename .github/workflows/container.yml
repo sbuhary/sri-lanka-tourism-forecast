@@ -8,13 +8,13 @@ on:
       - Dockerfile
       - .dockerignore
       - app.py
-      - train_model.py
-      - Tourism_Arrivals.csv
+      - src/train_model.py
+      - data/Tourism_Arrivals.csv
       - tests/**
       - .github/workflows/checks.yml
       - requirements.txt
-      - deployment_model.joblib
-      - model_info.json
+      - models/deployment_model.joblib
+      - models/model_info.json
       - infra/**
       - .github/workflows/container.yml
 
@@ -55,7 +55,7 @@ jobs:
       - name: Check container startup and model
         run: |
           image=ghcr.io/${{ github.repository }}:${{ github.sha }}
-          docker run --rm "$image" python -c "import joblib,json,pandas as pd; i=json.load(open('model_info.json')); m=joblib.load('deployment_model.joblib'); p=m.predict(pd.DataFrame([i['default_inputs']])[i['features']])[0]; assert abs(p-50521.55)<0.05; print('Model prediction verified')"
+          docker run --rm "$image" python -c "import joblib,json,pandas as pd; i=json.load(open('models/model_info.json')); m=joblib.load('models/deployment_model.joblib'); p=m.predict(pd.DataFrame([i['default_inputs']])[i['features']])[0]; assert abs(p-50521.55)<0.05; print('Model prediction verified')"
           docker run -d --name forecast -p 8501:8501 "$image"
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8501/_stcore/health; then break; fi

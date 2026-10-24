@@ -9,8 +9,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import make_pipeline
 from sklearn.ensemble import RandomForestRegressor
 
-folder = Path(__file__).resolve().parent
-csv_file = folder / 'Tourism_Arrivals.csv'
+folder = Path(__file__).resolve().parents[1]
+csv_file = folder / 'data' / 'Tourism_Arrivals.csv'
 features = ['Country', 'lag_1', 'lag_2', 'lag_3', 'lag_12', 'month_number']
 
 
@@ -41,7 +41,7 @@ def train_model():
         assert len(row) == 1 and float(row.Arrivals.iloc[0]) == default_inputs[column]
     prediction = float(model.predict(pd.DataFrame([default_inputs])[features])[0])
 
-    joblib.dump(model, folder / 'deployment_model.joblib')
+    joblib.dump(model, folder / 'models' / 'deployment_model.joblib')
     metadata = {
         'training_period': '2019-01 to 2026-09', 'training_rows': len(train),
         'features': features, 'countries': sorted(train.Country.unique().tolist()),
@@ -53,7 +53,7 @@ def train_model():
         'evaluation': 'Selected using training data from 2019-2023 and validation data from 2024; scores describe validation, not the deployment refit',
         'development_mae': 241.496, 'development_r2': 0.921,
         'development_wape_pct': 25.957}
-    (folder / 'model_info.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
+    (folder / 'models' / 'model_info.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
     print(f'Saved deployment model ({len(train)} rows). India October 2026 forecast: {prediction:,.2f}')
 
 

@@ -10,7 +10,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
     && useradd --create-home --uid 10001 app
 
-COPY app.py deployment_model.joblib model_info.json ./
+COPY app.py ./
+COPY models/deployment_model.joblib models/model_info.json ./models/
 USER app
 EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \

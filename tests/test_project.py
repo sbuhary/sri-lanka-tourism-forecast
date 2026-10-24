@@ -13,9 +13,9 @@ folder = Path(__file__).resolve().parents[1]
 class ProjectChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.data = pd.read_csv(folder / 'Tourism_Arrivals.csv')
-        cls.info = json.loads((folder / 'model_info.json').read_text())
-        cls.model = joblib.load(folder / 'deployment_model.joblib')
+        cls.data = pd.read_csv(folder / 'data' / 'Tourism_Arrivals.csv')
+        cls.info = json.loads((folder / 'models' / 'model_info.json').read_text())
+        cls.model = joblib.load(folder / 'models' / 'deployment_model.joblib')
 
     def test_training_data(self):
         data = self.data
@@ -30,7 +30,7 @@ class ProjectChecks(unittest.TestCase):
         np.testing.assert_array_equal(months.month, data.month_number)
         self.assertEqual(str(months.min()), '2019-01')
         self.assertEqual(str(months.max()), '2026-09')
-        digest = hashlib.sha256((folder / 'Tourism_Arrivals.csv').read_bytes()).hexdigest()
+        digest = hashlib.sha256((folder / 'data' / 'Tourism_Arrivals.csv').read_bytes()).hexdigest()
         self.assertEqual(digest, self.info['csv_sha256'])
 
     def test_saved_prediction(self):

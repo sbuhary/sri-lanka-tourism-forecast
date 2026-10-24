@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
       - name: Rebuild deployment model
-        run: python train_model.py
+        run: python src/train_model.py
       - name: Check data, prediction and app
         run: python -m unittest discover -s tests -v
       - name: Save model and training record
@@ -28,6 +28,6 @@ jobs:
         with:
           name: tourism-model-${{ github.sha }}
           path: |
-            deployment_model.joblib
-            model_info.json
+            models/deployment_model.joblib
+            models/model_info.json
           retention-days: 30

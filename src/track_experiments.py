@@ -12,7 +12,7 @@ from sklearn.ensemble import ExtraTreesRegressor, VotingRegressor
 from sklearn.metrics import mean_absolute_error, root_mean_squared_error, r2_score
 from train_model import build_pipeline, features
 
-folder = Path(__file__).resolve().parent
+folder = Path(__file__).resolve().parents[1]
 
 
 def calculate_scores(actual, prediction):
@@ -28,11 +28,11 @@ def track_experiments():
 
     dagshub.init(repo_owner='sbuhary', repo_name='sri-lanka-tourism-forecast', mlflow=True)
     mlflow.set_experiment('Tourism arrivals')
-    data = pd.read_csv(folder / 'Tourism_Arrivals.csv')
+    data = pd.read_csv(folder / 'data' / 'Tourism_Arrivals.csv')
     train = data.loc[data.Year_Month.between('2019-01', '2023-12')]
     validation = data.loc[data.Year_Month.between('2024-01', '2024-12')]
     validation = validation.loc[validation.Country.isin(train.Country.unique())]
-    digest = hashlib.sha256((folder / 'Tourism_Arrivals.csv').read_bytes()).hexdigest()
+    digest = hashlib.sha256((folder / 'data' / 'Tourism_Arrivals.csv').read_bytes()).hexdigest()
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=folder, text=True).strip()
     assert not subprocess.check_output(['git', 'status', '--porcelain'], cwd=folder, text=True).strip(), 'Commit changes before tracking a run.'
     tags = {'data_sha256': digest, 'source_commit': commit, 'mlflow.source.git.commit': commit,
@@ -87,9 +87,9 @@ def track_experiments():
             print(f'{name}: MAE {scores["MAE"]:.3f}')
 
     # The deployment refit is recorded without assigning validation scores to it.
-    info = json.loads((folder / 'model_info.json').read_text())
+    info = json.loads((folder / 'models' / 'model_info.json').read_text())
     assert info['csv_sha256'] == digest
-    model = joblib.load(folder / 'deployment_model.joblib')
+    model = joblib.load(folder / 'models' / 'deployment_model.joblib')
     example = pd.DataFrame([info['default_inputs']])[features]
     assert abs(float(model.predict(example)[0]) - info['deployment_default_prediction']) < .001
     with mlflow.start_run(run_name='Random Forest - deployment') as run:
@@ -97,11 +97,11 @@ def track_experiments():
         mlflow.log_params({'train_period': info['training_period'], 'train_rows': info['training_rows'],
                            'n_estimators': 150, 'max_depth': 12, 'min_samples_leaf': 5,
                            'random_state': 42, 'features': ','.join(features)})
-        mlflow.log_artifact(str(folder / 'deployment_model.joblib'), artifact_path='model')
-        mlflow.log_artifact(str(folder / 'model_info.json'), artifact_path='model')
+        mlflow.log_artifact(str(folder / 'models' / 'deployment_model.joblib'), artifact_path='model')
+        mlflow.log_artifact(str(folder / 'models' / 'model_info.json'), artifact_path='model')
         run_records.append({'name': 'Random Forest - deployment', 'role': 'deployment',
                             'run_id': run.info.run_id})
-    (folder / 'tracking_results.json').write_text(json.dumps(
+    (folder / 'models' / 'tracking_results.json').write_text(json.dumps(
         {'source_commit': commit, 'data_sha256': digest, 'runs': run_records}, indent=2))
     print('Runs and deployment artifacts saved to DagsHub.')
 

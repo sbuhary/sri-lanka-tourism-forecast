@@ -2,5 +2,7 @@
 !Dockerfile
 !requirements.txt
 !app.py
-!deployment_model.joblib
-!model_info.json
+!models/
+models/*
+!models/deployment_model.joblib
+!models/model_info.json

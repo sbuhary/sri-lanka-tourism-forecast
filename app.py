@@ -5,7 +5,7 @@ import joblib
 import pandas as pd
 import streamlit as st
 
-folder = Path(__file__).resolve().parent
+folder = Path(__file__).resolve().parent / 'models'
 st.set_page_config(page_title='Sri Lanka Tourist Arrivals Forecast', page_icon='✈️')
 st.title('Sri Lanka Tourist Arrivals Forecast')
 st.write('Estimate monthly arrivals from an origin market using its recent arrival counts.')
@@ -17,7 +17,7 @@ def load_model():
     return model, info
 
 if not all((folder / name).exists() for name in ['deployment_model.joblib', 'model_info.json']):
-    st.error('Run python train_model.py once before starting the app.')
+    st.error('Run python src/train_model.py once before starting the app.')
     st.stop()
 
 model, info = load_model()
