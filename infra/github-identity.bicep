@@ -1,5 +1,7 @@
 param location string = resourceGroup().location
 param repository string
+param ownerId string
+param repositoryId string
 param environmentName string = 'production'
 
 resource identity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-01-31' = {
@@ -11,7 +13,7 @@ resource trust 'Microsoft.ManagedIdentity/userAssignedIdentities/federatedIdenti
   name: 'github-production'
   properties: {
     issuer: 'https://token.actions.githubusercontent.com'
-    subject: 'repo:${repository}:environment:${environmentName}'
+    subject: 'repo:${split(repository, '/')[0]}@${ownerId}/${split(repository, '/')[1]}@${repositoryId}:environment:${environmentName}'
     audiences: ['api://AzureADTokenExchange']
   }
 }

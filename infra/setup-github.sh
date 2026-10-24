@@ -9,9 +9,11 @@ for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ManagedIde
   az provider register --namespace "$provider" --wait
 done
 az group create --name "$group" --location "$region" --output none
+owner_id=$(gh api "repos/$repository" --jq .owner.id)
+repo_id=$(gh api "repos/$repository" --jq .id)
 identity=$(az deployment group create --resource-group "$group" --name github-identity \
   --template-file "$(dirname "$0")/github-identity.bicep" \
-  --parameters repository="$repository" --query properties.outputs --output json)
+  --parameters repository="$repository" ownerId="$owner_id" repositoryId="$repo_id" --query properties.outputs --output json)
 reviewer=$(gh api user --jq .id)
 printf '{"reviewers":[{"type":"User","id":%s}],"prevent_self_review":false,"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}' "$reviewer" \
   | gh api --method PUT "repos/$repository/environments/production" --input - >/dev/null

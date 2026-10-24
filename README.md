@@ -98,6 +98,6 @@ For initial setup or migration, sign into Azure and GitHub CLI with an account a
 bash infra/setup-github.sh SUBSCRIPTION_ID REGION sbuhary/sri-lanka-tourism-forecast
 ```
 
-This creates a user-assigned identity, trusts only this repository's `production` environment, grants Contributor on this resource group and configures GitHub's approval, branch policy and environment variables. No Azure password or client secret is stored in GitHub. The deployment identity cannot grant roles. The subscription, account eligibility, GitHub repository and public GHCR package are prerequisites; this script does not create them.
+This creates a user-assigned identity, trusts only this repository's `production` environment using its immutable owner and repository IDs, grants Contributor on this resource group and configures GitHub's approval, branch policy and environment variables. No Azure password or client secret is stored in GitHub. The deployment identity cannot grant roles. The subscription, account eligibility, GitHub repository and public GHCR package are prerequisites; this script does not create them.
 
 The first deploy after setup can be started from Actions → Build and deploy forecast → Run workflow. Future changes to app/container/infrastructure files on `main` start it automatically. Approve the pending production deployment in Actions after reviewing the build. Tracking in DagsHub remains on demand. Releases use single revisions; canary rollout, automatic rollback, drift monitoring and retraining are not implemented.
