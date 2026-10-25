@@ -78,6 +78,25 @@ The subscription, accounts and public GHCR image must already exist. Bicep confi
 
 Container logs are enabled. Forecast-error monitoring and automatic retraining are not implemented. A failed deployment health check does not automatically roll back the app.
 
+## Monthly data updates
+
+GitHub Actions checks SLTDA on the 1st, 5th and 10th of each month at 08:47 Sri Lanka time. It can also be started from **Actions > Update SLTDA data > Run workflow**. GitHub can delay scheduled runs and disables schedules in public repositories after 60 days without activity.
+
+The job downloads the country-level Excel files, checks published totals, applies the same country mappings and exclusions, then rebuilds the historical features. It detects revised values as well as new months. Blank counts stay missing. Source layout or reconciliation errors stop the job without publishing a data update.
+
+When data changes, the job refits a candidate model with the existing settings and opens or updates a pull request. The latest available month determines the training cutoff and next-month example. The source manifest records URLs and SHA-256 hashes. Original downloads and the validation report are retained as workflow artifacts for 90 days; download them for longer retention.
+
+Review the change summary and exclusions, rerun the notebook if historical values changed, and log an approved model update to DagsHub using the tracking script. Merging starts the existing container and model checks. Azure deployment still waits for production approval. This job does not retune models or update historical evaluation scores.
+
+To check the source locally without changing the CSV:
+
+```sh
+python -m pip install -r requirements-data.txt
+python src/update_data.py --check-only
+```
+
+GitHub Actions must be allowed to create pull requests in the repository's Actions settings. No SLTDA account or additional cloud service is needed.
+
 ## Files
 
 ```text

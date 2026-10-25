@@ -22,34 +22,42 @@ def build_pipeline(model):
     return make_pipeline(preprocessing, model)
 
 
+def latest_inputs(data, target_month, country='India'):
+    inputs = {'Country': country}
+    for lag in [1, 2, 3, 12]:
+        month = str(target_month - lag)
+        row = data.loc[data.Country.eq(country) & data.Year_Month.eq(month)]
+        if len(row) != 1:
+            raise ValueError(f'Missing or duplicate {country} arrivals for {month}')
+        inputs[f'lag_{lag}'] = int(row.Arrivals.iloc[0])
+    inputs['month_number'] = target_month.month
+    return inputs
+
+
 def train_model():
     data = pd.read_csv(csv_file)
-    # Refit the selected settings using all available history.
-    train = data.loc[data.Year_Month.between('2019-01', '2026-09')]
-    assert not train[features + ['Arrivals']].isna().any().any()
+    train = data.loc[data.Year_Month.ge('2019-01')]
+    if train.empty or train[features + ['Arrivals']].isna().any().any():
+        raise ValueError('Training data is empty or has missing inputs')
+    latest_month = pd.Period(train.Year_Month.max(), freq='M')
+    target_month = latest_month + 1
+    default_inputs = latest_inputs(data, target_month)
 
     evaluation = json.loads((folder / 'models' / 'evaluation_results.json').read_text())
     model = build_pipeline(ExtraTreesRegressor(**evaluation['settings'], n_jobs=4))
     model.fit(train[features], train.Arrivals)
 
-    default_inputs = {'Country': 'India', 'lag_1': 51931, 'lag_2': 47253,
-                      'lag_3': 44547, 'lag_12': 48113, 'month_number': 10}
-    # Check the default counts against the included dataset.
-    for column, month in [('lag_1', '2026-09'), ('lag_2', '2026-08'),
-                          ('lag_3', '2026-07'), ('lag_12', '2025-10')]:
-        row = data.loc[data.Country.eq('India') & data.Year_Month.eq(month)]
-        assert len(row) == 1 and float(row.Arrivals.iloc[0]) == default_inputs[column]
     prediction = float(model.predict(pd.DataFrame([default_inputs])[features])[0])
 
     joblib.dump(model, folder / 'models' / 'deployment_model.joblib')
     metadata = {
         'model_name': 'Extra Trees', 'settings': evaluation['settings'],
-        'training_period': '2019-01 to 2026-09', 'training_rows': len(train),
+        'training_period': f'{train.Year_Month.min()} to {latest_month}', 'training_rows': len(train),
         'features': features, 'countries': sorted(train.Country.unique().tolist()),
         'sklearn_version': sklearn.__version__,
         'csv_sha256': hashlib.sha256(csv_file.read_bytes()).hexdigest(),
         'deployment_default_prediction': prediction,
-        'default_inputs': default_inputs, 'default_target': '2026-10',
+        'default_inputs': default_inputs, 'default_target': str(target_month),
         'model_role': 'deployment refit; not independently evaluated',
         'evaluation': evaluation['evaluation_scope'],
         'validation_metrics': evaluation['validation']['Extra Trees'],
@@ -59,7 +67,7 @@ def train_model():
         'development_r2': evaluation['validation']['Extra Trees']['R2'],
         'development_wape_pct': evaluation['validation']['Extra Trees']['WAPE_pct']}
     (folder / 'models' / 'model_info.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
-    print(f'Saved deployment model ({len(train)} rows). India October 2026 forecast: {prediction:,.2f}')
+    print(f'Saved deployment model ({len(train)} rows). India {target_month.strftime("%B %Y")} forecast: {prediction:,.2f}')
 
 
 if __name__ == '__main__':

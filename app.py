@@ -31,7 +31,7 @@ with st.form('forecast'):
     month = right.selectbox('Month to predict', range(1, 13),
                             index=default_target.month - 1, format_func=lambda number: calendar.month_name[number])
     st.subheader('Historical arrivals')
-    st.caption('Prefilled for India, October 2026 using published historical counts. If you change the origin or target month, update all four counts to match.')
+    st.caption(f'Prefilled for {defaults["Country"]}, {default_target.strftime("%B %Y")} using published historical counts. If you change the origin or target month, update all four counts to match.')
     left, right = st.columns(2)
     lag_1 = left.number_input('1 month earlier', min_value=0, value=int(defaults['lag_1']), step=1)
     lag_2 = right.number_input('2 months earlier', min_value=0, value=int(defaults['lag_2']), step=1)
@@ -53,7 +53,8 @@ if submitted:
 
 with st.expander('About the estimate'):
     st.write('Extra Trees averages 150 trees with random split thresholds. It uses the origin, calendar month and four historical counts.')
-    st.write('Settings were checked using 2023, then validated on 2024: MAE 258 arrivals per origin/month and R² 0.904. Random Forest had lower validation error. The deployed model was retrained through September 2026; those scores describe the earlier model.')
+    training_end = pd.Period(info['training_period'].split(' to ')[1], freq='M').strftime('%B %Y')
+    st.write(f'Settings were checked using 2023, then validated on 2024: MAE 258 arrivals per origin/month and R² 0.904. Random Forest had lower validation error. The deployed model was retrained through {training_end}; those scores describe the earlier model.')
     st.caption('In a later-period check, a model trained through 2024 had MAE 293, while the seasonal rule had MAE 220. That period had already been explored, so it is not an independent final test.')
     st.caption('Published counts can be delayed or revised. Year labels the period and is not a model input.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')

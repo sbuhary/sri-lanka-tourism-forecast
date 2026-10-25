@@ -28,8 +28,9 @@ class ProjectChecks(unittest.TestCase):
         self.assertTrue(numeric.ge(0).all().all())
         months = pd.PeriodIndex(data.Year_Month, freq='M')
         np.testing.assert_array_equal(months.month, data.month_number)
-        self.assertEqual(str(months.min()), '2019-01')
-        self.assertEqual(str(months.max()), '2026-09')
+        self.assertEqual(str(months.min()), self.info['training_period'].split(' to ')[0])
+        self.assertEqual(str(months.max()), self.info['training_period'].split(' to ')[1])
+        self.assertEqual(str(months.max() + 1), self.info['default_target'])
         digest = hashlib.sha256((folder / 'data' / 'Tourism_Arrivals.csv').read_bytes()).hexdigest()
         self.assertEqual(digest, self.info['csv_sha256'])
 
@@ -39,7 +40,8 @@ class ProjectChecks(unittest.TestCase):
         self.assertFalse(self.model.steps[-1][1].bootstrap)
         inputs = pd.DataFrame([self.info['default_inputs']])[self.info['features']]
         prediction = float(self.model.predict(inputs)[0])
-        self.assertAlmostEqual(prediction, 44498.88, delta=0.05)
+        if self.info['csv_sha256'] == 'b1886d1337906be587388ade8a4527f649c7e8b931d78624df62facab56379e9':
+            self.assertAlmostEqual(prediction, 44498.88, delta=0.05)
         self.assertAlmostEqual(prediction, self.info['deployment_default_prediction'], places=6)
         inputs.loc[:, ['lag_1', 'lag_2', 'lag_3', 'lag_12']] = 0
         self.assertTrue(np.isfinite(self.model.predict(inputs)).all())
@@ -50,8 +52,8 @@ class ProjectChecks(unittest.TestCase):
         self.assertFalse(app.exception)
         app.button[0].click().run(timeout=60)
         self.assertFalse(app.exception)
-        self.assertEqual(app.metric[0].value, '44,499')
-        self.assertIn('October 2026', app.metric[0].label)
+        self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
+        self.assertIn(pd.Period(self.info['default_target'], freq='M').strftime('%B %Y'), app.metric[0].label)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,53 @@
+{
+  "source_page": "https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries",
+  "files": [
+    {
+      "year": 2018,
+      "url": "https://sltda.gov.lk/storage/common_media/1f57ba68a4949cbc2d4588b17429dfb7.xlsx",
+      "sha256": "fc686eadc613a2f07f0a8445ce6a81e7563d6293ed538cc819f978621ce7f436"
+    },
+    {
+      "year": 2019,
+      "url": "https://sltda.gov.lk/storage/common_media/914838f70eff587cef760526192b272b.xlsx",
+      "sha256": "dc2d0187fd9180d10f6d8c21ec58824f82c8092a83b59be15e086b589d49f7c2"
+    },
+    {
+      "year": 2020,
+      "url": "https://www.sltda.gov.lk/storage/common_media/Tourist%20Arrivals%20-%2020203945423401.xlsx",
+      "sha256": "09d55c85c09db49f99c37139ce30781547782ff6d952970929154b7215540805"
+    },
+    {
+      "year": 2021,
+      "url": "https://www.sltda.gov.lk/storage/common_media/Tourist%20Arrival%20-%20January%20to%20December%202021549178717.xlsx",
+      "sha256": "8fd17e6fcb58091872dcacfde9048561fc1ea59ce8212bfcd3e3e5a5be4a3326"
+    },
+    {
+      "year": 2022,
+      "url": "https://www.sltda.gov.lk/storage/common_media/Tourist%20Arrivals%20All%20Countries%20-%202022%28Jan%20-%20Dec%29862066154.xlsx",
+      "sha256": "fcb9ef5e3c4f8a2d15199f6a2143a841e5908585d1c6fd24e3b9bf2fe2816105"
+    },
+    {
+      "year": 2023,
+      "url": "https://www.sltda.gov.lk/storage/common_media/All%20Countries%202023%20%28%20Jan%20_%20Dec%29.xlsx",
+      "sha256": "b6cc1fd17d2c5c8aa622814cd8f42b8bae1530a00c708f39276d51fc74028e0a"
+    },
+    {
+      "year": 2024,
+      "url": "https://www.sltda.gov.lk/storage/common_media/All-Countries-2024-Jan-Dec.xlsx",
+      "sha256": "5a3e1a6633ff56abe2395bb415f449266163f91e42422621bfd29c42502508e1"
+    },
+    {
+      "year": 2025,
+      "url": "https://www.sltda.gov.lk/storage/common_media/All_Countries_Jan_%20Dec_%202025%20Final.xlsx",
+      "sha256": "69061bda55ac7e3a7b490594f1dceea543226667a059f7caa6f5a0d63d8980bb"
+    },
+    {
+      "year": 2026,
+      "url": "https://www.sltda.gov.lk/storage/common_media/All_Countries_Jan-Sep%20_2026.xlsx",
+      "sha256": "17734108c85efe35beada837ff281326cec1c4e7ffd1c21c21cacb7e2bd47982"
+    }
+  ],
+  "first_month": "2019-01",
+  "latest_month": "2026-09",
+  "eligible_rows": 17053
+}

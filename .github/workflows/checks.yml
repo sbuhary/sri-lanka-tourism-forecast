@@ -18,7 +18,7 @@ jobs:
           python-version: '3.13'
           cache: pip
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install -r requirements-data.txt
       - name: Rebuild deployment model
         run: python src/train_model.py
       - name: Check data, prediction and app
