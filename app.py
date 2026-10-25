@@ -1,6 +1,7 @@
 from pathlib import Path
 from html import escape
 import base64
+import calendar
 import json
 import joblib
 import pandas as pd
@@ -34,28 +35,58 @@ data = load_history()
 default_target = pd.Period(info['default_target'], freq='M')
 training_start, training_end = [pd.Period(value, freq='M').strftime('%B %Y')
                                 for value in info['training_period'].split(' to ')]
-month_options = pd.period_range(data.Year_Month.min(), default_target + 12, freq='M').astype(str).tolist()
+first_month = pd.Period(data.Year_Month.min(), freq='M')
+last_month = pd.Period(year=default_target.year + 1, month=12, freq='M')
+years = list(range(last_month.year, first_month.year - 1, -1))
 if 'market' not in st.session_state:
     st.session_state.market = info['default_inputs']['Country']
     st.session_state.target_month = str(default_target)
-    st.session_state.custom_history = None
+if 'overrides' not in st.session_state:
+    st.session_state.overrides = {}
+    st.session_state.editing_lag = None
 
 
 def reset_history():
-    st.session_state.custom_history = None
+    st.session_state.overrides = {}
+    st.session_state.editing_lag = None
     for lag in lags:
-        st.session_state.pop(f'edit_lag_{lag}', None)
+        st.session_state.pop(f'draft_{lag}', None)
+
+
+def sync_picker():
+    st.session_state.pop('picker_year', None)
+    st.session_state.pop('picker_month', None)
 
 
 def choose_market(country):
     st.session_state.market = country
     reset_history()
+    sync_picker()
 
 
 def move_month(direction):
-    index = month_options.index(st.session_state.target_month)
-    st.session_state.target_month = month_options[index + direction]
+    st.session_state.target_month = str(pd.Period(st.session_state.target_month, freq='M') + direction)
     reset_history()
+    sync_picker()
+
+
+def choose_month():
+    st.session_state.target_month = str(pd.Period(
+        year=st.session_state.picker_year, month=st.session_state.picker_month, freq='M'))
+    reset_history()
+
+
+def begin_edit(lag):
+    st.session_state.editing_lag = lag
+    st.session_state.pop(f'draft_{lag}', None)
+
+
+def reset_value(lag):
+    overrides = dict(st.session_state.overrides)
+    overrides.pop(f'lag_{lag}', None)
+    st.session_state.overrides = overrides
+    st.session_state.editing_lag = None
+
 
 
 st.html(f'''
@@ -84,55 +115,74 @@ with setup:
                               on_click=choose_market, args=(country,))
 
         st.markdown('<p class="field-label">Target month</p>', unsafe_allow_html=True)
+        current_target = pd.Period(st.session_state.target_month, freq='M')
         with st.container(key='month_navigation'):
             previous, selected, following = st.columns([1, 5, 1], gap='small')
             previous.button('‹', key='previous_month', help='Previous month', use_container_width=True,
-                            disabled=st.session_state.target_month == month_options[0],
-                            on_click=move_month, args=(-1,))
-            selected.selectbox('Target month', month_options, key='target_month',
-                               format_func=lambda value: pd.Period(value, freq='M').strftime('%B %Y'),
-                               label_visibility='collapsed', on_change=reset_history)
+                            disabled=current_target == first_month, on_click=move_month, args=(-1,))
+            with selected.popover(current_target.strftime('%B %Y'), key='month_picker', use_container_width=True):
+                with st.form('choose_month'):
+                    st.selectbox('Year', years, index=years.index(current_target.year), key='picker_year')
+                    st.selectbox('Month', range(1, 13), index=current_target.month - 1, key='picker_month',
+                                 format_func=lambda month: calendar.month_name[month])
+                    st.form_submit_button('Go to month', key='go_to_month', type='primary', on_click=choose_month)
             following.button('›', key='next_month', help='Next month', use_container_width=True,
-                             disabled=st.session_state.target_month == month_options[-1],
-                             on_click=move_month, args=(1,))
+                             disabled=current_target == last_month, on_click=move_month, args=(1,))
 
         country = st.session_state.market
         target = pd.Period(st.session_state.target_month, freq='M')
         published = historical_arrivals(data, country, target)
-        custom = st.session_state.custom_history is not None
-        counts = st.session_state.custom_history if custom else published
+        custom = bool(st.session_state.overrides)
+        counts = {**published, **st.session_state.overrides}
         complete = all(value is not None for value in counts.values())
-        status = 'Entered counts' if custom else ('SLTDA counts' if complete else 'Incomplete inputs')
+        status = 'Incomplete inputs' if not complete else 'Edited inputs' if custom else 'SLTDA counts'
         st.html(f'<div class="history-heading"><h3>Historical inputs</h3><span class="status-badge">{status}</span></div>')
         st.caption(f'One estimate uses these four counts, the market and month. The model learned from {info["training_rows"]:,} records across {training_start}–{training_end}.')
         descriptions = {3: '3 months earlier', 2: '2 months earlier',
                         1: '1 month earlier', 12: 'Same month last year'}
-        rows = []
         for lag in lags:
-            value = counts[f'lag_{lag}']
-            display = 'Not in dataset' if value is None else f'{value:,}'
-            rows.append(f'<div class="history-row"><div><strong>{(target - lag).strftime("%b %Y")}</strong>'
-                        f'<small>{descriptions[lag]}</small></div><span>{display}</span></div>')
-        st.html('<div class="history-list">' + ''.join(rows) + '</div>')
-
-        with st.container(key='history_actions'):
-            hint, edit = st.columns([1.6, 1], vertical_alignment='center')
-            hint.caption('Change the market or month and these update.')
-            with edit.popover('Edit values', type='tertiary', icon=':material/edit:', key='edit_values'):
-                st.markdown('**Enter counts for this estimate**')
-                st.caption('These values affect this estimate only. The source dataset stays unchanged.')
-                with st.form('edit_history'):
-                    edits = {}
-                    for lag in lags:
-                        edits[f'lag_{lag}'] = st.number_input(descriptions[lag], min_value=0,
-                            value=counts[f'lag_{lag}'], step=1, key=f'edit_lag_{lag}')
-                    if st.form_submit_button('Apply values', key='apply_values', type='primary'):
-                        if any(value is None for value in edits.values()):
-                            st.error('Enter all four counts before applying them.')
-                        else:
-                            st.session_state.custom_history = edits
+            field = f'lag_{lag}'
+            value = counts[field]
+            period_label = (target - lag).strftime('%b %Y')
+            with st.container(key=f'history_row_{lag}'):
+                if st.session_state.editing_lag == lag:
+                    label, editor = st.columns([1, 1.7], gap='small')
+                    label.html(f'<div class="history-label"><strong>{period_label}</strong><small>{descriptions[lag]}</small></div>')
+                    with editor.form(f'edit_history_{lag}'):
+                        edited_value = st.number_input(f'{period_label} arrivals', min_value=0,
+                            value=value, step=1, key=f'draft_{lag}', label_visibility='collapsed')
+                        save, cancel = st.columns(2, gap='small')
+                        save_clicked = save.form_submit_button('Save', key=f'save_{lag}', type='primary')
+                        cancel_clicked = cancel.form_submit_button('Cancel', key=f'cancel_{lag}')
+                        if cancel_clicked:
+                            st.session_state.editing_lag = None
                             st.rerun()
-                st.button('Use dataset counts', key='use_published', on_click=reset_history)
+                        if save_clicked:
+                            if edited_value is None:
+                                st.error('Enter a known count. Missing data is not zero.')
+                            else:
+                                overrides = dict(st.session_state.overrides)
+                                if edited_value == published[field]:
+                                    overrides.pop(field, None)
+                                else:
+                                    overrides[field] = edited_value
+                                st.session_state.overrides = overrides
+                                st.session_state.editing_lag = None
+                                st.rerun()
+                else:
+                    label, number, pencil, reset = st.columns([1.45, 1, .28, .28], gap='small', vertical_alignment='center')
+                    label.html(f'<div class="history-label"><strong>{period_label}</strong><small>{descriptions[lag]}</small></div>')
+                    display = 'Not in dataset' if value is None else f'{value:,}'
+                    edited = '<small>Edited</small>' if field in st.session_state.overrides else ''
+                    number.html(f'<div class="history-value">{display}{edited}</div>')
+                    pencil.button('✎', key=f'edit_{lag}', type='tertiary', help=f'Edit {period_label} count',
+                                  on_click=begin_edit, args=(lag,))
+                    if field in st.session_state.overrides:
+                        reset.button('↺', key=f'reset_{lag}', type='tertiary', help=f'Restore {period_label} dataset count',
+                                     on_click=reset_value, args=(lag,))
+        if custom:
+            st.button('Reset all to dataset values', key='reset_all', type='tertiary', on_click=reset_history)
+        st.caption('Changing the market or month loads matching data and clears edits.')
         st.caption(f'SLTDA data available through {pd.Period(data.Year_Month.max(), freq="M").strftime("%B %Y")}.')
 
 with result:
@@ -145,7 +195,7 @@ with result:
                 f'<p>{market_label} · {target.strftime("%B %Y")}</p></div>'
                 f'<span class="estimate-badge">{estimate_type}</span></div>')
         if not complete:
-            st.info('The available dataset is missing one or more required counts. Choose another market or month, or enter known counts under “Edit values”.')
+            st.info('The available dataset is missing one or more required counts. Choose another market or month, or use the pencil beside a missing count to enter a known value.')
         else:
             inputs = {'Country': country, **counts, 'month_number': target.month}
             estimate = max(0, float(model.predict(pd.DataFrame([inputs])[info['features']])[0]))
@@ -168,14 +218,16 @@ with result:
             bars, labels = [], []
             for index, (period, value) in enumerate(comparison):
                 is_forecast = index == 4
-                bars.append(f'<div class="bar-column"><span class="bar-value">{value:,.0f}</span>'
+                bars.append(f'<div class="bar-column{" forecast-column" if is_forecast else ""}"><span class="bar-value">{value:,.0f}</span>'
                             f'<div class="bar{" forecast" if is_forecast else ""}" style="height:{value / largest * 175:.1f}px"></div></div>')
-                labels.append(f'<span><strong>{period.strftime("%b")}</strong><br>{period.year}{" est." if is_forecast else ""}</span>')
-            legend = 'Entered counts' if custom else 'SLTDA counts'
+                suffix = ' est.' if is_forecast else ' · edited' if f'lag_{lags[index]}' in st.session_state.overrides else ''
+                labels.append(f'<span><strong>{period.strftime("%b")}</strong><br>{period.year}{suffix}</span>')
+            legend = 'Input counts' if custom else 'SLTDA counts'
             st.html('<section class="comparison" aria-label="Historical inputs compared with the estimate">'
                     f'<div class="chart-heading"><h3>History and estimate</h3><div class="legend"><span>{legend}</span><span>Estimate</span></div></div>'
                     '<div class="bar-chart">' + ''.join(bars) + '</div><div class="bar-labels">'
                     + ''.join(labels) + '</div></section>')
+            st.caption('Selected input months are shown; gaps between them are not to scale.')
             if in_training_period:
                 st.caption('The selected month is within the model’s training period. This estimate does not measure performance on unseen data.')
 
@@ -187,5 +239,5 @@ with result:
                 st.write(f'Extra Trees averages 150 decision trees. The deployed model was trained on {info["training_rows"]:,} monthly records from {training_start} to {training_end}. It uses the market, calendar month and four historical counts to estimate one month’s arrivals.')
                 st.write('Settings were chosen using 2023 validation. Training on 2019–2023 gave MAE 258 arrivals per market/month and R² 0.904 on 2024 validation. Random Forest had lower error. These scores describe the evaluation model. The deployed refit has no independent evaluation.')
                 st.caption('A retrospective check on previously explored 2025–September 2026 data gave MAE 293 for Extra Trees and 220 for the seasonal rule. This was not an untouched test. R² is not percentage accuracy.')
-                st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Entered counts affect this estimate only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
+                st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Edited counts affect this estimate only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
                 st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')

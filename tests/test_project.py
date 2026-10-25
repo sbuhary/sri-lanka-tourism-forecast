@@ -51,6 +51,9 @@ class ProjectChecks(unittest.TestCase):
         app = AppTest.from_file(str(folder / 'app.py')).run(timeout=60)
         self.assertFalse(app.exception)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
+        default_target = pd.Period(self.info['default_target'], freq='M')
+        self.assertEqual(app.selectbox(key='picker_year').value, default_target.year)
+        self.assertEqual(app.selectbox(key='picker_month').value, default_target.month)
 
         app.button(key='pick_Germany').click().run(timeout=60)
         self.assertFalse(app.exception)
@@ -68,18 +71,50 @@ class ProjectChecks(unittest.TestCase):
         self.assertFalse(app.exception)
         self.assertEqual(len(app.metric), 0)
         self.assertTrue(app.info)
+        app.button(key='edit_1').click().run(timeout=60)
+        self.assertIsNone(app.number_input(key='draft_1').value)
+        app.button(key='save_1').click().run(timeout=60)
+        self.assertTrue(app.error)
+        self.assertEqual(len(app.metric), 0)
+        app.number_input(key='draft_1').set_value(0)
+        app.button(key='save_1').click().run(timeout=60)
+        self.assertFalse(app.exception)
+        self.assertEqual(len(app.metric), 1)
+        app.button(key='reset_1').click().run(timeout=60)
+        self.assertEqual(len(app.metric), 0)
         app.button(key='previous_month').click().run(timeout=60)
         self.assertIn('Germany', app.metric[0].label)
 
         app.button(key='pick_India').click().run(timeout=60)
-        app.number_input(key='edit_lag_1').set_value(0)
-        app.button(key='apply_values').click().run(timeout=60)
+        app.button(key='edit_1').click().run(timeout=60)
+        app.number_input(key='draft_1').set_value(0)
+        app.button(key='cancel_1').click().run(timeout=60)
+        self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
+
+        app.button(key='edit_1').click().run(timeout=60)
+        app.number_input(key='draft_1').set_value(0)
+        app.button(key='save_1').click().run(timeout=60)
         self.assertFalse(app.exception)
         changed = dict(self.info['default_inputs'], lag_1=0)
         prediction = float(self.model.predict(pd.DataFrame([changed])[self.info['features']])[0])
         self.assertEqual(app.metric[0].value, f'{max(0, prediction):,.0f}')
-        app.button(key='use_published').click().run(timeout=60)
+        app.button(key='reset_1').click().run(timeout=60)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
+
+        for lag in [1, 2]:
+            app.button(key=f'edit_{lag}').click().run(timeout=60)
+            app.number_input(key=f'draft_{lag}').set_value(0)
+            app.button(key=f'save_{lag}').click().run(timeout=60)
+        app.button(key='reset_all').click().run(timeout=60)
+        self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
+
+        app.selectbox(key='picker_year').select(target.year - 1)
+        app.selectbox(key='picker_month').select(target.month)
+        app.button(key='go_to_month').click().run(timeout=60)
+        self.assertFalse(app.exception)
+        self.assertEqual(app.session_state['target_month'], str(target - 12))
+        self.assertIn((target - 12).strftime('%B %Y'), app.metric[0].label)
+
 
 
 if __name__ == '__main__':

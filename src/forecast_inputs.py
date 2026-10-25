@@ -1,7 +1,7 @@
 """Look up the published monthly counts needed by the forecast."""
 import pandas as pd
 
-lags = [3, 2, 1, 12]
+lags = [12, 3, 2, 1]
 
 
 def historical_arrivals(data, country, target):
