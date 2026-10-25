@@ -38,7 +38,7 @@
 .result-heading p { margin: 0; font-size: 1.15rem; font-weight: 600; }
 [data-testid="stMetricValue"] { color: #163c36; font-size: clamp(3rem, 5vw, 4.5rem);
   line-height: 1.1; display: flex; align-items: baseline; gap: 10px; letter-spacing: -.03em; }
-[data-testid="stMetricValue"]::after { content: "visitors"; font-size: 1.1rem; color: #4a675e; letter-spacing: 0; font-weight: 400; }
+[data-testid="stMetricValue"]::after { content: "arrivals"; font-size: 1.1rem; color: #4a675e; letter-spacing: 0; font-weight: 400; }
 .changes { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
 .change { border-radius: 999px; font-size: .86rem; font-weight: 600; padding: 8px 12px; }
 .increase { background: #e4f3ed; color: #166254; }
@@ -88,3 +88,6 @@
 .st-key-quick_picks button[kind="secondary"] { border-color: #8ca59f; }
 .st-key-result_footer { border-top: 1px solid #e0ece8; padding-top: 18px; margin-top: 14px; }
 .result-note { margin: 0; padding: 0; border: 0; }
+
+.change-label { color: #526b64; font-size: .8rem; margin: 0 0 8px; }
+.chart-heading { flex-wrap: wrap; }
