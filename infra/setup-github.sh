@@ -9,6 +9,9 @@ for provider in Microsoft.App Microsoft.OperationalInsights Microsoft.ManagedIde
   az provider register --namespace "$provider" --wait
 done
 az group create --name "$group" --location "$region" --output none
+# Let the monthly data job propose updates for review.
+gh api --method PUT "repos/$repository/actions/permissions/workflow" \
+  -F default_workflow_permissions=read -F can_approve_pull_request_reviews=true >/dev/null
 owner_id=$(gh api "repos/$repository" --jq .owner.id)
 repo_id=$(gh api "repos/$repository" --jq .id)
 identity=$(az deployment group create --resource-group "$group" --name github-identity \

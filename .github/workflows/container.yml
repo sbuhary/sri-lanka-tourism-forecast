@@ -13,6 +13,7 @@ on:
       - tests/**
       - .github/workflows/checks.yml
       - requirements.txt
+      - requirements-data.txt
       - models/deployment_model.joblib
       - models/model_info.json
       - models/evaluation_results.json

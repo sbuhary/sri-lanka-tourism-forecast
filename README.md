@@ -17,7 +17,7 @@ The saved model is included. To rebuild it, run `python src/train_model.py`. The
 
 ## Data and model
 
-The dataset contains 17,053 origin-month records from January 2019 to September 2026. It was compiled from nine [official SLTDA tables](https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries). The 2018 data supplies the first annual lag. Clear country-name variations were standardised; genuine zeros were retained, and unresolved records or rows without enough history were excluded.
+The initial study dataset contains 17,053 origin-month records from January 2019 to September 2026. It was compiled from nine [official SLTDA tables](https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries). The 2018 data supplies the first annual lag. Clear country-name variations were standardised; genuine zeros were retained, and unresolved records or rows without enough history were excluded.
 
 The six inputs are origin market, calendar month and arrivals 1, 2, 3 and 12 months earlier. Year labels the period but is not a model input.
 
@@ -33,7 +33,7 @@ Extra Trees improves on the previous-month rule for 57 of 184 origins in validat
 
 ## App example
 
-The app model was retrained on all eligible records through September 2026. Earlier scores describe the evaluation models, not this deployment refit. The default India October 2026 forecast is **44,499**, using these published counts:
+The initial app model was retrained on all eligible records through September 2026. Current training dates and default inputs are recorded in `models/model_info.json`. Earlier scores describe the evaluation models, not this deployment refit. The default India October 2026 forecast is **44,499**, using these published counts:
 
 | Historical month | Arrivals |
 | --- | ---: |
@@ -49,6 +49,7 @@ The data is public and aggregated, with no individual travel records. Country ma
 ## Checks and experiment tracking
 
 ```sh
+python -m pip install -r requirements-data.txt
 python -m unittest discover -s tests -v
 python -m pip install -r requirements-tracking.txt
 python src/track_experiments.py
@@ -76,7 +77,7 @@ bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-fo
 
 The subscription, accounts and public GHCR image must already exist. Bicep configures Container Apps, HTTPS, a readiness probe, zero–one replica and Log Analytics. Logs have 30-day retention and a 0.1 GB daily ingestion cap. Usage can consume cloud credit. To change subscription, rerun setup with the new ID, verify the new app and then remove old resources when appropriate.
 
-Container logs are enabled. Forecast-error monitoring and automatic retraining are not implemented. A failed deployment health check does not automatically roll back the app.
+Container logs are enabled. Forecast-error monitoring and drift-triggered retraining are not implemented. A failed deployment health check does not automatically roll back the app.
 
 ## Monthly data updates
 
@@ -95,7 +96,7 @@ python -m pip install -r requirements-data.txt
 python src/update_data.py --check-only
 ```
 
-GitHub Actions must be allowed to create pull requests in the repository's Actions settings. No SLTDA account or additional cloud service is needed.
+The setup script enables GitHub Actions to create pull requests. This can also be enabled in the repository's Actions settings. No SLTDA account or additional cloud service is needed.
 
 ## Files
 
