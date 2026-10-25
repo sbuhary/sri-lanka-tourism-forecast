@@ -11,6 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && useradd --create-home --uid 10001 app
 
 COPY app.py ./
+COPY assets/ ./assets/
+COPY .streamlit/config.toml ./.streamlit/config.toml
 COPY models/deployment_model.joblib models/model_info.json ./models/
 USER app
 EXPOSE 8501

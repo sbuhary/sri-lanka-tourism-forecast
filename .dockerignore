@@ -6,3 +6,9 @@
 models/*
 !models/deployment_model.joblib
 !models/model_info.json
+
+!assets/
+!assets/app.css
+!assets/coast.jpg
+!.streamlit/
+!.streamlit/config.toml

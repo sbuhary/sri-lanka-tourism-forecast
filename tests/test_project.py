@@ -55,6 +55,13 @@ class ProjectChecks(unittest.TestCase):
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
         self.assertIn(pd.Period(self.info['default_target'], freq='M').strftime('%B %Y'), app.metric[0].label)
 
+        next(field for field in app.number_input if field.label == '1 month earlier').set_value(0)
+        app.button[0].click().run(timeout=60)
+        self.assertFalse(app.exception)
+        changed = dict(self.info['default_inputs'], lag_1=0)
+        prediction = float(self.model.predict(pd.DataFrame([changed])[self.info['features']])[0])
+        self.assertEqual(app.metric[0].value, f'{max(0, prediction):,.0f}')
+
 
 if __name__ == '__main__':
     unittest.main()

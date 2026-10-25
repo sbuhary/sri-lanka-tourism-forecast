@@ -8,6 +8,8 @@ on:
       - Dockerfile
       - .dockerignore
       - app.py
+      - assets/**
+      - .streamlit/config.toml
       - src/train_model.py
       - data/Tourism_Arrivals.csv
       - tests/**

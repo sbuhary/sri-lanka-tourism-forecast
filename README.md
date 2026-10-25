@@ -102,6 +102,8 @@ The setup script enables GitHub Actions to create pull requests. This can also b
 
 ```text
 app.py       Streamlit frontend
+assets/      Banner photo and app styles
+.streamlit/  App theme
 src/         Training and tracking scripts
 data/        Dataset
 models/      Model, metadata and result records
@@ -110,3 +112,5 @@ tests/       Automated checks
 infra/       Azure configuration
 .github/     Check and deployment workflows
 ```
+
+Banner photograph: supplied SLTDA coastal image, [original source](https://www.sltda.gov.lk/images/statistics-cover-new.jpg).

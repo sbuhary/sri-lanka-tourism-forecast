@@ -1,0 +1,47 @@
+.stApp { font-variant-numeric: tabular-nums; }
+[data-testid="stMainBlockContainer"] { max-width: 1180px; padding-top: 2rem; padding-bottom: 3rem; }
+[data-testid="stHeader"] { background: transparent; }
+.sea-banner { position: relative; min-height: 176px; margin-bottom: 1.2rem; overflow: hidden;
+  display: flex; align-items: center; border-radius: 16px; background: #075b60; }
+.sea-banner img { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.sea-banner::after { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(5,48,51,.90), rgba(5,55,58,.66) 60%, rgba(5,55,58,.12)); }
+.banner-copy { position: relative; z-index: 1; padding: 28px 32px; max-width: 780px; }
+.banner-copy h1 { color: white; font-size: clamp(1.65rem, 3vw, 2.05rem); line-height: 1.18;
+  letter-spacing: -.025em; margin: 0 0 10px; padding: 0; font-weight: 700; }
+.banner-copy p { color: #e3f6f2; margin: 0; font-size: 1rem; line-height: 1.5; }
+.banner-copy .banner-source { font-size: .78rem; margin-top: 12px; color: #cfebe6; }
+[data-testid="stForm"], .st-key-result_card { background: white; border: 1px solid #d7e6e2;
+  border-radius: 16px; padding: 24px; }
+[data-testid="stForm"] h3, .st-key-result_card h3 { font-size: 1.15rem; padding-top: 0; }
+[data-testid="stForm"] h4 { font-size: 1rem; }
+[data-testid="stForm"] button[kind="primaryFormSubmit"] { min-height: 46px; border-radius: 9px; }
+[data-testid="stNumberInput"] input, [data-baseweb="select"] { font-variant-numeric: tabular-nums; }
+[data-testid="stMetricValue"] { color: #086d68; font-size: clamp(2.6rem, 5vw, 3.8rem); line-height: 1.15; }
+[data-testid="stMetricLabel"] { color: #385d58; }
+.comparison { margin-top: 20px; }
+.comparison h3 { font-size: 1rem; margin: 0 0 16px; font-weight: 650; }
+.bar-chart { display: flex; align-items: end; gap: 12px; height: 200px;
+  border-bottom: 1px solid #cadcd7; padding: 0 4px; }
+.bar-column { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column;
+  align-items: center; justify-content: end; }
+.bar-value { font-size: .8rem; font-weight: 600; color: #214d47; margin-bottom: 7px; }
+.bar { width: 72%; max-width: 62px; background: #82bcb2; border-radius: 7px 7px 0 0; }
+.bar.forecast { background: #008a83; }
+.bar-labels { display: flex; gap: 12px; padding: 8px 4px 0; }
+.bar-labels span { flex: 1; min-width: 0; text-align: center; font-size: .74rem; color: #506c65; line-height: 1.5; }
+.bar-labels strong { color: #174f48; font-weight: 600; }
+.result-note { color: #536f68; font-size: .85rem; line-height: 1.6; margin-top: 22px;
+  padding-top: 16px; border-top: 1px solid #e0ece8; }
+[data-testid="stExpander"] { background: white; border-color: #d7e6e2; border-radius: 12px; }
+@media (max-width: 640px) {
+  [data-testid="stMainBlockContainer"] { padding: 1rem 1rem 2rem; }
+  .sea-banner { min-height: 174px; margin-bottom: .6rem; }
+  .banner-copy { padding: 24px 20px; }
+  .banner-copy h1 { max-width: 340px; }
+  [data-testid="stForm"], .st-key-result_card { padding: 18px; }
+  .bar-chart, .bar-labels { gap: 6px; }
+  .bar-value { font-size: .7rem; }
+}
+
+[data-testid="stCaptionContainer"] p { color: #526e68; }
