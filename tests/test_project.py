@@ -53,10 +53,13 @@ class ProjectChecks(unittest.TestCase):
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
         from src.forecast_inputs import forecast_outlook
         expected, _ = forecast_outlook(self.model, self.info['features'], self.data, self.info['default_inputs']['Country'], self.info['default_target'])
-        self.assertEqual(app.dataframe[0].value['Estimated arrivals'].tolist(), [round(row['Estimated arrivals']) for row in expected])
-        app.select_slider[0].set_value(1).run(timeout=60)
-        self.assertEqual(len(app.dataframe), 0)
-        app.select_slider[0].set_value(3).run(timeout=60)
+        self.assertEqual([metric.value for metric in app.metric], [f'{row["Estimated arrivals"]:,.0f}' for row in expected])
+        app.radio(key='horizon').set_value(1).run(timeout=60)
+        self.assertEqual(len(app.metric), 1)
+        app.radio(key='horizon').set_value(2).run(timeout=60)
+        self.assertEqual(len(app.metric), 2)
+        self.assertEqual([metric.value for metric in app.metric], [f'{row["Estimated arrivals"]:,.0f}' for row in expected[:2]])
+        app.radio(key='horizon').set_value(3).run(timeout=60)
 
         app.button(key='pick_Germany').click().run(timeout=60)
         self.assertFalse(app.exception)
