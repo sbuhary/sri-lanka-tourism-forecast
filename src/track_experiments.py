@@ -104,7 +104,7 @@ def track_experiments():
             run_records.append({'name': name, 'role': 'retrospective_test',
                                 'run_id': run.info.run_id, 'metrics': scores})
 
-    # The deployment refit is recorded without assigning validation scores to it.
+    # Log the app model separately, without the earlier validation scores.
     info = json.loads((folder / 'models' / 'model_info.json').read_text())
     assert info['csv_sha256'] == digest
     model = joblib.load(folder / 'models' / 'deployment_model.joblib')

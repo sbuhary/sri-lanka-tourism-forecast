@@ -1,6 +1,6 @@
 # Sri Lanka Tourist Arrivals Forecast
 
-Estimate monthly tourist arrivals to Sri Lanka from an origin market using recent arrival counts.
+Predict monthly arrivals to Sri Lanka from an origin market using Extra Trees.
 
 [Azure app](https://tourism-forecast.calmisland-751fb489.eastus.azurecontainerapps.io/) | [Streamlit app](https://sri-lanka-tourism-forecast.streamlit.app/) | [Notebook](notebooks/Tourism_Arrivals_Analysis.ipynb)
 
@@ -13,42 +13,39 @@ python -m pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-The saved model is included. To rebuild it, run `python src/train_model.py`. The notebook loads the CSV from `data/` or lets you upload it in Colab.
+The saved model is included. To retrain it, run `python src/train_model.py`. The notebook finds the CSV in `data/` or beside itself. In Colab, upload it when asked.
 
 ## Data and model
 
-The initial study dataset contains 17,053 origin-month records from January 2019 to September 2026. It was compiled from nine [official SLTDA tables](https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries). The 2018 data supplies the first annual lag. Clear country-name variations were standardised; genuine zeros were retained, and unresolved records or rows without enough history were excluded.
+The dataset has 17,053 records from January 2019 to September 2026, one market per month. It comes from nine [official SLTDA Excel files](https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries). The 2018 counts supply the first annual lag. Clear country-name differences were corrected, zeros were kept, and unresolved entries or rows with missing history were removed.
 
-The six inputs are origin market, calendar month and arrivals 1, 2, 3 and 12 months earlier. Year labels the period but is not a model input.
+The six inputs are market, calendar month and arrivals 1, 2, 3 and 12 months earlier. Year labels the period but is not an input.
 
-Extra Trees averages 150 trees with random split thresholds. Every tree uses the full training sample and all encoded features. A 2023 holdout selected depth 8 and minimum leaf size 10. See [Geurts et al. (2006)](https://doi.org/10.1007/s10994-006-6226-1) and [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html).
+Extra Trees averages 150 trees with random split thresholds. Each tree uses all training rows and encoded features. A check on 2023 selected depth 8 and minimum leaf size 10. The tree count was fixed. See [Geurts et al. (2006)](https://doi.org/10.1007/s10994-006-6226-1) and [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html).
 
 ## Results
 
-After training on 2019–2023, Extra Trees had MAE **258.39**, RMSE **1,111.30**, R² **0.904** and WAPE **27.77%** on 2024 validation. Random Forest had lower MAE at **241.50**, followed by voting at **243.63**. Extra Trees is the main algorithm investigated here, while the comparison shows where other methods work better. R² is not percentage accuracy.
+Training on 2019–2023 and validating on 2024 gave Extra Trees MAE **258.39**, RMSE **1,111.30**, R² **0.904** and WAPE **27.77%**. Random Forest had lower MAE (**241.50**), followed by voting (**243.63**). Extra Trees is the main algorithm studied here, but it was not the best model in this comparison. R² is not percentage accuracy.
 
-For a later check, the fixed settings were refitted through 2024 and assessed on January 2025–September 2026. MAE was **293.35**, compared with **299.55** for the previous-month rule and **219.67** for the same-month-last-year rule. This later period was used during exploration, so it is not an independent final test. Each prediction uses actual earlier counts.
+After training through 2024, I checked January 2025–September 2026. MAE was **293.35** for Extra Trees, **299.55** for the previous-month rule and **219.67** for the same-month-last-year rule. I had already examined this period, so it is not an independent final test. These checks use actual earlier counts.
 
-Extra Trees improves on the previous-month rule for 57 of 184 origins in validation. Errors vary by market, and the stronger seasonal baseline in the later period limits the case for operational use. The notebook contains the full comparison and SHAP/LIME explanations. [Evaluation records](models/evaluation_results.json) retain the settings and results.
+Extra Trees beats the previous-month rule for only 57 of 184 validation markets. The notebook includes the market errors and SHAP/LIME explanations. [Evaluation records](models/evaluation_results.json) hold the settings and scores.
 
-## App example
+## Using the app
 
-The initial app model was retrained on all eligible records through September 2026. Current training dates and default inputs are recorded in `models/model_info.json`. Earlier scores describe the evaluation models, not this deployment refit. The default India October 2026 forecast is **44,499**, using these published counts:
+Choose a market and a one-, two- or three-month horizon. The page scrolls to the results after a selection. It stays at the top on initial load.
 
-| Historical month | Arrivals |
-| --- | ---: |
-| September 2026 | 51,931 |
-| August 2026 | 47,253 |
-| July 2026 | 44,547 |
-| October 2025 | 48,113 |
+The first forecast uses actual historical counts. Later months reuse earlier predictions where actual counts are unavailable. The chart shows 12 published months followed by forecasts. Hover for exact counts, or download the forecast CSV.
 
-The app starts immediately after the latest published month and offers one, two or three forecast months. Changing the market loads its historical counts. Selecting a market or horizon scrolls to the forecast panel; the initial page load stays at the top. The first month uses published counts; later predictions feed back into lag inputs where actual counts are unavailable. Equal-sized monthly cards show the forecasts. The chart places twelve consecutive published months before the forecast months, with a dotted boundary between them. A CSV download provides the forecast values. Open **View or adjust starting inputs** to edit a count using the pencil, then Save or Cancel. Each edited row has a reset button; **Reset all to dataset values** clears all overrides. Training and evaluation details are under **About the model and evaluation**. Percentage comparisons refer to the first forecast month versus published actuals, including when inputs are edited. Missing required starting history stops the outlook. No prediction interval is provided.
+Open **View or adjust starting inputs** to edit a count. Save applies it to this scenario. Reset restores the dataset value; changing market clears edits. Missing required history stops the forecast. The chart history and percentage comparisons always use published actuals.
 
-A separate recursive development check used January, April, July and October 2024 forecast origins with a model trained through 2023. MAE was 286.69, 353.78 and 386.80 at horizons 1, 2 and 3 (710, 709 and 709 cases). The seasonal rule gave 349.45, 322.34 and 266.50. Actual counts after each origin were excluded from inputs. Later horizons have higher errors, and the seasonal baseline was stronger at horizons 2 and 3. These are not independent scores for the deployed refit. See the notebook and [horizon results](models/horizon_results.json).
+The default India forecasts for October–December 2026 are **44,499 / 44,079 / 43,290**. The app model was trained through September 2026. Earlier scores do not test this trained version. Current dates and settings are in `models/model_info.json`.
 
-The data is public and aggregated, with no individual travel records. Country mappings and uneven market errors can affect budget or service decisions, so forecasts need human review.
+A separate three-month check started forecasts in January, April, July and October 2024 with the model trained through 2023. MAE rose from **286.69** at one month ahead to **353.78** and **386.80** at two and three months (710, 709 and 709 cases). The seasonal rule gave **349.45 / 322.34 / 266.50**, so it was better at the longer horizons. Future actuals were excluded from inputs. See [horizon results](models/horizon_results.json).
 
-## Checks and experiment tracking
+These are planning estimates. Errors vary by market, and no prediction interval is provided. The data is public monthly totals, not personal records. Revisions and sudden demand changes can affect results, so forecasts need human review.
+
+## Checks and tracking
 
 ```sh
 python -m pip install -r requirements-data.txt
@@ -57,62 +54,62 @@ python -m pip install -r requirements-tracking.txt
 python src/track_experiments.py
 ```
 
-Commit changes before tracking so each run identifies its source code. [DagsHub](https://dagshub.com/sbuhary/sri-lanka-tourism-forecast/experiments) stores seven validation runs, three later-period runs and a separate deployment artifact. Run IDs and source revisions are in [tracking_results.json](models/tracking_results.json). Tracking runs manually; credentials stay outside the repo.
+Commit changes before tracking. [DagsHub](https://dagshub.com/sbuhary/sri-lanka-tourism-forecast/experiments) holds seven validation runs, three later-period runs and a separate app-model run. Run IDs and code versions are in [tracking_results.json](models/tracking_results.json). Tracking is manual. Credentials stay outside the repo.
 
 ## Azure deployment
 
-GitHub Actions requires the full model checks and container checks to pass. It publishes the tested image to GHCR, waits for production approval, signs into Azure through OIDC, deploys the Bicep configuration and checks live health. The [Extra Trees release](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40174959817) completed successfully.
+GitHub Actions runs model and container checks, publishes the tested image to GHCR and waits for approval. It then signs into Azure with OIDC, deploys using Bicep and checks the live app. See the [verified release](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40202957949).
 
-For initial setup or migration, sign into Azure and GitHub CLI, then use Bash with `az`, `gh` and `jq`:
+For initial setup or a new subscription, sign into Azure and GitHub CLI. Use Bash with `az`, `gh` and `jq`:
 
 ```sh
 bash infra/setup-github.sh SUBSCRIPTION_ID REGION sbuhary/sri-lanka-tourism-forecast
 ```
 
-The setup creates the resource group, deployment identity, repository/environment trust and GitHub approval settings. It needs an account allowed to assign Azure roles. The deployment identity has Contributor on this resource group. The signed-in GitHub user becomes reviewer; self-review is allowed for this single-maintainer project. Only `main` can deploy.
+This creates the resource group, Azure identity and GitHub approval settings. The account needs permission to assign Azure roles. The deployment identity has Contributor access to this resource group. The signed-in GitHub user is the reviewer. Self-review is allowed for this single-maintainer project; only `main` can deploy.
 
-For a manual deployment or rollback to a tested image:
+For a manual release or rollback to a tested image:
 
 ```sh
 bash infra/deploy.sh SUBSCRIPTION_ID REGION ghcr.io/sbuhary/sri-lanka-tourism-forecast:COMMIT_SHA
 ```
 
-The subscription, accounts and public GHCR image must already exist. Bicep configures Container Apps, HTTPS, a readiness probe, zero–one replica and Log Analytics. Logs have 30-day retention and a 0.1 GB daily ingestion cap. Usage can consume cloud credit. To change subscription, rerun setup with the new ID, verify the new app and then remove old resources when appropriate.
+The accounts, subscription and public GHCR image must exist. Bicep sets up HTTPS, a readiness check, zero–one replica and Log Analytics. Logs have 30-day retention and a 0.1 GB daily cap. Usage can consume cloud credit. To move subscriptions, rerun setup, verify the new app, then remove old resources when appropriate.
 
-Container logs are enabled. Forecast-error monitoring and drift-triggered retraining are not implemented. A failed deployment health check does not automatically roll back the app.
+Logs are enabled. Automatic forecast-error monitoring, drift-triggered training and rollback are not implemented.
 
 ## Monthly data updates
 
-GitHub Actions checks SLTDA on the 1st, 5th and 10th of each month at 08:47 Sri Lanka time. It can also be started from **Actions > Update SLTDA data > Run workflow**. GitHub can delay scheduled runs and disables schedules in public repositories after 60 days without activity.
+GitHub Actions checks SLTDA on the 1st, 5th and 10th at 08:47 Sri Lanka time. You can also use **Actions > Update SLTDA data > Run workflow**. GitHub may delay scheduled runs or disable schedules after 60 days without repository activity.
 
-The job downloads the country-level Excel files, checks published totals, applies the same country mappings and exclusions, then rebuilds the historical features. It detects revised values as well as new months. Blank counts stay missing. Source layout or reconciliation errors stop the job without publishing a data update.
+The job downloads Excel files, checks totals and country labels, then rebuilds the historical features. Blank counts stay missing. Source-format or total mismatches stop the update.
 
-When data changes, the job refits a candidate model with the existing settings and opens or updates a pull request. The latest available month determines the training cutoff and next-month example. The source manifest records URLs and SHA-256 hashes. Original downloads and the validation report are retained as workflow artifacts for 90 days; download them for longer retention.
+Changed data produces a candidate model with the existing settings and a review pull request. Source URLs and hashes are saved in the manifest. Downloads and validation details are kept as workflow artifacts for 90 days.
 
-Review the change summary and exclusions, rerun the notebook if historical values changed, and log an approved model update to DagsHub using the tracking script. Merging starts the existing container and model checks. Azure deployment still waits for production approval. This job does not retune models or update historical evaluation scores.
+Before merging, review changes and exclusions. Rerun the notebook if historical values changed, and log approved model updates to DagsHub. Merging starts the checks; Azure still needs approval. The job does not tune models or replace historical evaluation scores.
 
-To check the source locally without changing the CSV:
+To check the source without changing the CSV:
 
 ```sh
 python -m pip install -r requirements-data.txt
 python src/update_data.py --check-only
 ```
 
-The setup script enables GitHub Actions to create pull requests. This can also be enabled in the repository's Actions settings. No SLTDA account or additional cloud service is needed.
+The setup script enables GitHub Actions to create pull requests. No SLTDA account is needed.
 
 ## Files
 
 ```text
-app.py       Streamlit frontend
-assets/      Banner photo and app styles
-.streamlit/  App theme
-src/         Training and tracking scripts
-data/        Dataset
-models/      Model, metadata and result records
+app.py       Streamlit app
+assets/      Banner and styles
+.streamlit/  Theme
+src/         Data updates, training, forecasts and tracking
+data/        Dataset and source details
+models/      Saved model, settings and results
 notebooks/   Analysis and explanations
 tests/       Automated checks
 infra/       Azure configuration
-.github/     Check and deployment workflows
+.github/     Check, update and deployment workflows
 ```
 
-Banner photograph: supplied SLTDA coastal image, [original source](https://www.sltda.gov.lk/images/statistics-cover-new.jpg).
+Banner: supplied SLTDA coastal photograph, [source](https://www.sltda.gov.lk/images/statistics-cover-new.jpg).

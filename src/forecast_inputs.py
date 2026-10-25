@@ -14,14 +14,14 @@ def historical_arrivals(data, country, target):
         month = str(target - lag)
         value = history.get(month)
         if (value is None or pd.isna(value)) and len(target_row) == 1 and f'lag_{lag}' in target_row:
-            # Early source counts are also preserved in the prepared lag columns.
+            # Early counts are also stored in the prepared lag columns.
             value = target_row.iloc[0][f'lag_{lag}']
         counts[f'lag_{lag}'] = None if value is None or pd.isna(value) else int(value)
     return counts
 
 
 def forecast_outlook(model, features, data, country, start, months=3, overrides=None):
-    """Forecast consecutively, reusing estimates only within this outlook."""
+    """Predict each month, using earlier forecasts as later inputs."""
     if months not in (1, 2, 3):
         raise ValueError('Choose between one and three months')
     start = pd.Period(start, freq='M')

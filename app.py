@@ -225,10 +225,10 @@ with st.expander('View or adjust starting inputs', expanded=not complete):
         st.button('Reset all to dataset values', key='reset_all', type='tertiary', on_click=reset_history)
 
 with st.expander('About the model and evaluation'):
-    st.write(f'Extra Trees averages 150 decision trees. The deployed model was trained on {info["training_rows"]:,} monthly records from {training_start} to {training_end}. It uses the market, calendar month and four historical counts. The outlook runs this model up to three times, feeding earlier estimates into later months.')
-    st.write('Settings were chosen using 2023 validation. Training on 2019–2023 gave MAE 258 arrivals per market/month and R² 0.904 on 2024 validation. Random Forest had lower error. These scores describe the evaluation model. The deployed refit has no independent evaluation.')
-    st.caption('A retrospective check on previously explored 2025–September 2026 data gave MAE 293 for Extra Trees and 220 for the seasonal rule. This was not an untouched test. R² is not percentage accuracy.')
-    st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Edited counts affect this outlook only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
+    st.write(f'Extra Trees averages 150 decision trees. The deployed model was trained on {info["training_rows"]:,} monthly records from {training_start} to {training_end}. It uses the market, calendar month and four historical counts. For later months, earlier predictions replace unavailable counts.')
+    st.write('A check on 2023 selected the depth and leaf size. The tree count was fixed at 150. Training on 2019–2023 gave MAE 258 and R² 0.904 on 2024 validation. Random Forest had lower error. These scores describe that evaluation model. The app model has not been tested on new data.')
+    st.caption('In a later check on January 2025–September 2026, MAE was 293 for Extra Trees and 220 for the seasonal rule. This period had already been examined. R² is not percentage accuracy.')
+    st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Edits affect this outlook only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')
 
 # Move to the results after a selection, without moving the initial page load.
