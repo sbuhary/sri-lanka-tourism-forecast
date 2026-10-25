@@ -35,7 +35,7 @@ Extra Trees beats the previous-month rule for only 57 of 184 validation markets.
 
 Choose a market and a one-, two- or three-month horizon. The page scrolls to the results after a selection. It stays at the top on initial load.
 
-The first forecast uses actual historical counts. Later months reuse earlier predictions where actual counts are unavailable. The chart shows 12 published months followed by forecasts. Hover for exact counts, or download the forecast CSV.
+The first forecast uses actual historical counts. Later months reuse earlier predictions where actual counts are unavailable. The chart shows 12 published months followed by forecasts. On narrow screens, the chart opens at the latest months; swipe right to see earlier history. Hover for exact counts, or download the forecast CSV.
 
 Open **View or adjust starting inputs** to edit a count. Save applies it to this scenario. Reset restores the dataset value; changing market clears edits. Missing required history stops the forecast. The chart history and percentage comparisons always use published actuals.
 

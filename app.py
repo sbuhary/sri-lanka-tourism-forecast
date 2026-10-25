@@ -152,8 +152,7 @@ with st.container(border=True, key='result_card'):
             value_label = f'{value:,.0f}' if pd.notna(value) else 'Missing'
             height = value / largest * 175 if pd.notna(value) else 0
             detail = f'{period.strftime("%B %Y")}: {value_label} arrivals · {"Forecast" if is_forecast else "Published"}'
-            visible_value = value_label if is_forecast or index in [0, 11] else ''
-            bars.append(f'<div class="bar-column{boundary}" tabindex="0" title="{detail}" aria-label="{detail}"><span class="bar-value">{visible_value}</span>'
+            bars.append(f'<div class="bar-column{boundary}" tabindex="0" title="{detail}" aria-label="{detail}"><span class="bar-value">{value_label}</span>'
                         f'<div class="{bar_class}" style="height:{height:.1f}px"></div></div>')
             boundary_label = ' class="forecast-label"' if index == 12 else ''
             suffix = ' est.' if is_forecast else ''
@@ -162,7 +161,7 @@ with st.container(border=True, key='result_card'):
                 '<div class="chart-heading"><h3>Recent arrivals and forecast</h3><div class="legend"><span>Published arrivals</span><span>Forecast</span></div></div>'
                 '<div class="chart-scroll"><div class="chart-inner"><div class="bar-chart">' + ''.join(bars)
                 + '</div><div class="bar-labels">' + ''.join(labels) + '</div></div></div></section>')
-        st.caption('Twelve months of published history. Hover over a bar for its exact count; scroll the chart on smaller screens.')
+        st.caption('Twelve months of published history. On smaller screens, swipe right to see earlier months. Hover over a bar for its exact count.')
         if custom:
             st.caption('The published history is unchanged. Forecasts reflect your edited starting inputs.')
         forecast_table = pd.DataFrame(outlook).rename(columns={'Estimated arrivals': 'Forecast arrivals'})
