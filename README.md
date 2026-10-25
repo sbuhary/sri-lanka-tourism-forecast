@@ -42,7 +42,7 @@ The initial app model was retrained on all eligible records through September 20
 | July 2026 | 44,547 |
 | October 2025 | 48,113 |
 
-Update all four counts when changing the origin or month. The app does not fetch them automatically. Publication delays, revisions and sudden demand changes can affect estimates. No prediction interval is provided.
+Changing the market or month automatically loads matching historical counts from the included SLTDA CSV and updates the estimate. Quick picks and month arrows follow the same lookup. Use **Edit values** for custom counts, which are labelled separately. Missing history is shown explicitly and the app waits for complete inputs before predicting. Publication delays, revisions and sudden demand changes can affect estimates. No prediction interval is provided.
 
 The data is public and aggregated, with no individual travel records. Country mappings and uneven market errors can affect budget or service decisions, so forecasts need human review.
 

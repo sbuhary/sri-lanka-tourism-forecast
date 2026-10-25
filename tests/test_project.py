@@ -50,17 +50,36 @@ class ProjectChecks(unittest.TestCase):
     def test_app(self):
         app = AppTest.from_file(str(folder / 'app.py')).run(timeout=60)
         self.assertFalse(app.exception)
-        app.button[0].click().run(timeout=60)
-        self.assertFalse(app.exception)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
-        self.assertIn(pd.Period(self.info['default_target'], freq='M').strftime('%B %Y'), app.metric[0].label)
 
-        next(field for field in app.number_input if field.label == '1 month earlier').set_value(0)
-        app.button[0].click().run(timeout=60)
+        app.button(key='pick_Germany').click().run(timeout=60)
+        self.assertFalse(app.exception)
+        self.assertEqual(app.selectbox(key='market').value, 'Germany')
+        self.assertIn('Germany', app.metric[0].label)
+        target = pd.Period(self.info['default_target'], freq='M')
+        inputs = {'Country': 'Germany', 'month_number': target.month}
+        for lag in [1, 2, 3, 12]:
+            row = self.data.loc[self.data.Country.eq('Germany') & self.data.Year_Month.eq(str(target - lag))]
+            inputs[f'lag_{lag}'] = int(row.Arrivals.iloc[0])
+        prediction = float(self.model.predict(pd.DataFrame([inputs])[self.info['features']])[0])
+        self.assertEqual(app.metric[0].value, f'{prediction:,.0f}')
+
+        app.button(key='next_month').click().run(timeout=60)
+        self.assertFalse(app.exception)
+        self.assertEqual(len(app.metric), 0)
+        self.assertTrue(app.info)
+        app.button(key='previous_month').click().run(timeout=60)
+        self.assertIn('Germany', app.metric[0].label)
+
+        app.button(key='pick_India').click().run(timeout=60)
+        app.number_input(key='edit_lag_1').set_value(0)
+        app.button(key='apply_values').click().run(timeout=60)
         self.assertFalse(app.exception)
         changed = dict(self.info['default_inputs'], lag_1=0)
         prediction = float(self.model.predict(pd.DataFrame([changed])[self.info['features']])[0])
         self.assertEqual(app.metric[0].value, f'{max(0, prediction):,.0f}')
+        app.button(key='use_published').click().run(timeout=60)
+        self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
 
 
 if __name__ == '__main__':

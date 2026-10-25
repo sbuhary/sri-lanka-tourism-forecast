@@ -12,3 +12,8 @@ models/*
 !assets/coast.jpg
 !.streamlit/
 !.streamlit/config.toml
+
+!src/
+!src/forecast_inputs.py
+!data/
+!data/Tourism_Arrivals.csv

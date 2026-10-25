@@ -11,6 +11,7 @@ on:
       - assets/**
       - .streamlit/config.toml
       - src/train_model.py
+      - src/forecast_inputs.py
       - data/Tourism_Arrivals.csv
       - tests/**
       - .github/workflows/checks.yml
@@ -60,6 +61,7 @@ jobs:
         run: |
           image=ghcr.io/${{ github.repository }}:${{ github.sha }}
           docker run --rm "$image" python -c "import joblib,json,pandas as pd; i=json.load(open('models/model_info.json')); m=joblib.load('models/deployment_model.joblib'); p=m.predict(pd.DataFrame([i['default_inputs']])[i['features']])[0]; assert p>=0 and abs(p-i['deployment_default_prediction'])<0.000001; print('Model prediction verified')"
+          docker run --rm "$image" python -c "from streamlit.testing.v1 import AppTest; a=AppTest.from_file('app.py').run(timeout=60); assert not a.exception; assert len(a.metric)==1; print('App and bundled data verified')"
           docker run -d --name forecast -p 8501:8501 "$image"
           for attempt in $(seq 1 30); do
             if curl -fsS http://127.0.0.1:8501/_stcore/health; then break; fi

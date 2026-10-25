@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'src'))
 from update_data import (arrival_count, build_features, canonical_country,
                          describe_changes, discover_files, parse_workbook)
 from train_model import latest_inputs
+from forecast_inputs import historical_arrivals
 
 
 class DataUpdateChecks(unittest.TestCase):
@@ -20,6 +21,25 @@ class DataUpdateChecks(unittest.TestCase):
         for value in [-1, 1.5, 'NaN', 'unknown']:
             with self.assertRaises(ValueError):
                 arrival_count(value)
+
+    def test_history_lookup_missing_and_zero(self):
+        data = pd.DataFrame([
+            {'Country': 'India', 'Year_Month': '2026-09', 'Arrivals': 0},
+            {'Country': 'Germany', 'Year_Month': '2026-09', 'Arrivals': 500},
+            {'Country': 'India', 'Year_Month': '2025-10', 'Arrivals': 100}])
+        counts = historical_arrivals(data, 'India', pd.Period('2026-10', freq='M'))
+        self.assertEqual(counts['lag_1'], 0)
+        self.assertEqual(counts['lag_12'], 100)
+        self.assertIsNone(counts['lag_2'])
+        self.assertIsNone(counts['lag_3'])
+        with self.assertRaises(ValueError):
+            historical_arrivals(pd.concat([data, data]), 'India', pd.Period('2026-10', freq='M'))
+
+    def test_early_history_from_prepared_lags(self):
+        data = pd.DataFrame([{'Country': 'India', 'Year_Month': '2019-01', 'Arrivals': 100,
+                              'lag_1': 20, 'lag_2': 0, 'lag_3': 15, 'lag_12': 10}])
+        counts = historical_arrivals(data, 'India', pd.Period('2019-01', freq='M'))
+        self.assertEqual(counts, {'lag_3': 15, 'lag_2': 0, 'lag_1': 20, 'lag_12': 10})
 
     def test_country_mapping(self):
         self.assertEqual(canonical_country('UNITED STATES OF AMERICA'), 'United States')
