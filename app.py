@@ -48,9 +48,19 @@ def reset_history():
         st.session_state.pop(f'draft_{lag}', None)
 
 
+def show_forecast():
+    st.session_state.scroll_to_forecast = True
+    st.session_state.scroll_request = st.session_state.get('scroll_request', 0) + 1
+
+
+def change_market():
+    reset_history()
+    show_forecast()
+
+
 def choose_market(country):
     st.session_state.market = country
-    reset_history()
+    change_market()
 
 
 def begin_edit(lag):
@@ -81,7 +91,7 @@ with st.container(border=True, key='setup_card'):
     market_controls, horizon_controls = st.columns([1.6, 1], gap='large')
     with market_controls:
         with st.container(key='market_picker'):
-            st.selectbox('Origin market', info['countries'], key='market', on_change=reset_history)
+            st.selectbox('Origin market', info['countries'], key='market', on_change=change_market)
         with st.container(key='quick_picks'):
             picks = [('India', 'India'), ('UK', 'United Kingdom'),
                      ('Russia', 'Russian Federation'), ('Germany', 'Germany')]
@@ -90,7 +100,7 @@ with st.container(border=True, key='setup_card'):
                               type='primary' if st.session_state.market == country else 'secondary',
                               on_click=choose_market, args=(country,))
     with horizon_controls:
-        months_ahead = st.radio('Forecast horizon', [1, 2, 3], index=2, horizontal=True, key='horizon',
+        months_ahead = st.radio('Forecast horizon', [1, 2, 3], index=2, horizontal=True, key='horizon', on_change=show_forecast,
                                format_func=lambda value: f'{value} month' if value == 1 else f'{value} months')
         st.caption(f'Data through {training_end} · Forecast starts {default_target.strftime("%B %Y")}')
 
@@ -220,3 +230,17 @@ with st.expander('About the model and evaluation'):
     st.caption('A retrospective check on previously explored 2025–September 2026 data gave MAE 293 for Extra Trees and 220 for the seasonal rule. This was not an untouched test. R² is not percentage accuracy.')
     st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Edited counts affect this outlook only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')
+
+# Move to the results after a selection, without moving the initial page load.
+if st.session_state.pop('scroll_to_forecast', False):
+    st.html(f'''<script data-request="{st.session_state.scroll_request}">
+      requestAnimationFrame(() => {{
+        const panel = document.querySelector('.st-key-result_card');
+        if (!panel) return;
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        panel.scrollIntoView({{behavior: reducedMotion ? 'instant' : 'smooth', block: 'start'}});
+        const heading = panel.querySelector('h2');
+        heading?.setAttribute('tabindex', '-1');
+        heading?.focus({{preventScroll: true}});
+      }});
+    </script>''', unsafe_allow_javascript=True)
