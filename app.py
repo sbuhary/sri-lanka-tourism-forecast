@@ -131,25 +131,28 @@ with st.container(border=True, key='result_card'):
                     '<div class="changes">' + ''.join(changes) + '</div>')
 
         history = data.loc[data.Country.eq(country)].set_index('Year_Month').Arrivals
-        recent = [(target - lag, history.get(str(target - lag))) for lag in range(6, 0, -1)]
+        recent = [(target - lag, history.get(str(target - lag))) for lag in range(12, 0, -1)]
         comparison = recent + [(pd.Period(row['Month'], freq='M'), row['Estimated arrivals']) for row in outlook]
         largest = max(1, *(value for _, value in comparison if pd.notna(value)))
         bars, labels = [], []
         for index, (period, value) in enumerate(comparison):
-            is_forecast = index >= 6
-            boundary = ' forecast-column' if index == 6 else ''
+            is_forecast = index >= 12
+            boundary = ' forecast-column' if index == 12 else ''
             bar_class = 'bar forecast' if is_forecast else 'bar'
             value_label = f'{value:,.0f}' if pd.notna(value) else 'Missing'
             height = value / largest * 175 if pd.notna(value) else 0
-            bars.append(f'<div class="bar-column{boundary}"><span class="bar-value">{value_label}</span>'
+            detail = f'{period.strftime("%B %Y")}: {value_label} arrivals · {"Forecast" if is_forecast else "Published"}'
+            visible_value = value_label if is_forecast or index in [0, 11] else ''
+            bars.append(f'<div class="bar-column{boundary}" tabindex="0" title="{detail}" aria-label="{detail}"><span class="bar-value">{visible_value}</span>'
                         f'<div class="{bar_class}" style="height:{height:.1f}px"></div></div>')
-            boundary_label = ' class="forecast-label"' if index == 6 else ''
-            suffix = ' forecast' if is_forecast else ''
+            boundary_label = ' class="forecast-label"' if index == 12 else ''
+            suffix = ' est.' if is_forecast else ''
             labels.append(f'<span{boundary_label}><strong>{period.strftime("%b")}</strong><br>{period.year}{suffix}</span>')
-        st.html('<section class="comparison" aria-label="Six consecutive historical months followed by forecasts">'
+        st.html('<section class="comparison" aria-label="Twelve consecutive historical months followed by forecasts">'
                 '<div class="chart-heading"><h3>Recent arrivals and forecast</h3><div class="legend"><span>Published arrivals</span><span>Forecast</span></div></div>'
                 '<div class="chart-scroll"><div class="chart-inner"><div class="bar-chart">' + ''.join(bars)
                 + '</div><div class="bar-labels">' + ''.join(labels) + '</div></div></div></section>')
+        st.caption('Twelve months of published history. Hover over a bar for its exact count; scroll the chart on smaller screens.')
         if custom:
             st.caption('The published history is unchanged. Forecasts reflect your edited starting inputs.')
         forecast_table = pd.DataFrame(outlook).rename(columns={'Estimated arrivals': 'Forecast arrivals'})

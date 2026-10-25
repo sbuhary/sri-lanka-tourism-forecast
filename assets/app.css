@@ -90,7 +90,7 @@
 [data-testid="stMetricLabel"] { color: #31594f; }
 .change { background: #edf5f2; color: #31594f; }
 .chart-scroll { overflow-x: auto; }
-.chart-inner { min-width: 540px; }
+.chart-inner { min-width: 820px; }
 .st-key-setup_card [role="radiogroup"] { gap: 8px; }
 .st-key-setup_card [role="radiogroup"] label { border: 1px solid #91aaa3; border-radius: 9px; padding: 9px 12px; background: #f4f9f7; }
 .result-heading { margin-bottom: 18px; }
@@ -99,3 +99,5 @@
   [data-testid="stMetric"] { padding: 12px; }
   [data-testid="stMetricValue"] { font-size: 2rem; }
 }
+
+.bar-column:focus-visible { outline: 2px solid #00877e; outline-offset: 2px; border-radius: 5px; }
