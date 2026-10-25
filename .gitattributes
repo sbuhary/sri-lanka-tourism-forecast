@@ -1,0 +1,2 @@
+# Keep source-data hashes identical on Windows and Linux.
+data/Tourism_Arrivals.csv -text
