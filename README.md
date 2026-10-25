@@ -18,11 +18,13 @@ The saved model is included, so training is only needed to rebuild it. The datas
 
 ## Model and results
 
-I compared models trained on 2019–2023 data and validated on 2024. Random Forest had the lowest MAE: 241.50 arrivals per origin/month, with R² 0.921 and WAPE 25.96%. These are development-validation results, not an independent final test.
+Extra Trees is the algorithm under study. It averages 150 trees with randomly sampled split thresholds. Here `bootstrap=False` and `max_features=1.0`: each tree uses the full training sample and all available features. A limited 2023 holdout check selected depth 8 and minimum leaf size 10. See the [original paper](https://doi.org/10.1007/s10994-006-6226-1) and [scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.ExtraTreesRegressor.html).
 
-I then retrained the selected settings on all 17,053 eligible rows through September 2026: 150 trees, maximum depth 12, minimum leaf size 5 and random seed 42. The saved pipeline includes encoding and scaling. `models/model_info.json` records the training range, dataset hash and default inputs. This deployment model has not been separately tested.
+On 2024 development validation after training on 2019–2023, Extra Trees has MAE **258.39**, RMSE **1,111.30**, R² **0.904** and WAPE **27.77%**. Random Forest is better at MAE **241.50**, and voting is **243.63**. Extra Trees improves on the previous-month rule (286.45) for the pooled metric, but only for **57 of 184 origins**. It is not the winner of this comparison. R² is not percentage accuracy.
 
-The six inputs are country, calendar month and arrivals 1, 2, 3 and 12 months earlier. Year identifies the target period but is not a model input.
+For a separate retrospective test, the fixed settings were refitted on 13,066 records through 2024 and assessed on 3,978 known-origin records from January 2025 to September 2026. Extra Trees MAE is **293.35**, previous-month MAE **299.55**, and same-month-last-year MAE **219.67**. The seasonal rule is better there. Those later data were previously inspected, so this is not an untouched final test, and it was not used to change the settings. Every forecast uses actual earlier counts, so evaluation is rolling one month ahead rather than a fixed twelve-month forecast.
+
+[Evaluation results](models/evaluation_results.json) retain the settings, cohort sizes and metrics. The deployment pipeline refits Extra Trees on all 17,053 eligible records through September 2026. Earlier validation and retrospective scores do not evaluate this refit. `models/model_info.json` records its data hash, settings and default inputs.
 
 ## Default forecast
 
@@ -35,7 +37,7 @@ The form starts with India, October 2026:
 | July 2026 | 44,547 |
 | October 2025 | 48,113 |
 
-The forecast is about 50,522 arrivals. Change all four historical counts when choosing another origin or target period; the app does not fetch them automatically.
+The forecast is about 44,499 arrivals. Change all four historical counts when choosing another origin or target period; the app does not fetch them automatically.
 
 ## Data and limitations
 
@@ -53,7 +55,7 @@ GitHub Actions rebuilds the model and runs these checks on relevant pushes to `m
 
 For new monthly data, update the dataset and training cutoff, check the defaults and rerun training and tests before release. The fixed forecast check must be reviewed if the data or settings change. Do not replace it just to hide a failed check.
 
-These checks confirm that the app can be reproduced and run; they do not establish forecast accuracy. The app runs on Azure Container Apps, with Streamlit Community Cloud as a fallback. Both use Python 3.13. Azure collects container logs; forecast-error monitoring is not implemented. Actual forecast errors can be checked once SLTDA publishes the corresponding arrivals.
+These checks confirm that the app can be reproduced and run; they do not establish forecast accuracy. Azure serves the last approved release; approve the latest successful build to update it. The app runs on Azure Container Apps, with Streamlit Community Cloud as a fallback. Both use Python 3.13. Azure collects container logs; forecast-error monitoring is not implemented. Actual forecast errors can be checked once SLTDA publishes the corresponding arrivals.
 
 
 ## Experiment tracking
@@ -69,14 +71,14 @@ Commit local changes first so each run points to the code that produced it. The 
 
 The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.
 
-The initial tracked comparison contains seven validation runs (five models and two baselines) and one deployment run. [tracking_results.json](models/tracking_results.json) records their IDs, metrics and source revision. All runs finished successfully; the stored deployment artifact was downloaded and verified against the app model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
+Historical Random Forest runs remain in the original DagsHub experiment. The new Extra Trees experiment records seven validation comparisons, three retrospective assessments and a separate deployment artifact. Until new tracking completes, tracking_results.json is explicitly labelled historical. [tracking_results.json](models/tracking_results.json) records their IDs, metrics and source revision. Do not assign old Random Forest metrics or artifact checks to the updated Extra Trees model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
 
 
 ## Azure deployment
 
-Deployed and checked on 24 October 2026 in East US. The live form returned 50,522 arrivals for the default example, matching the saved model. The deployed image passed the [container checks](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40126234359).
+Deployed and checked on 24 October 2026 in East US. The live form returned 44,499 arrivals for the default example, matching the saved model. The deployed image passed the [container checks](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40126234359).
 
-Current image digest: `sha256:a96f5e75ae30ffee81408f1e130dbbf8ebd40a53851bd4b875e0efb030b04158`. The first [approved automated release](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40129111813) passed OIDC login, Bicep deployment and live health checks. An independent request also returned HTTP 200 (`ok`). The initial deployment uses a personal Azure trial; the same template can recreate it in another subscription.
+The initial deployment used a personal Azure trial; the same template can recreate it in another subscription.
 
 The container workflow builds and checks the app before publishing an image to GitHub Container Registry, tagged with its source commit. Make the image package public for Azure to pull it without a registry credential. The image contains only the app, dependencies and verified model files.
 
@@ -115,3 +117,10 @@ tests/          Data, inference and app checks
 infra/          Azure resources and setup scripts
 .github/        CI and approved deployment workflows
 ```
+
+
+## Explanation and ethical use
+
+The evaluation-model India January 2024 prediction is 28,951 versus 34,399 observed. Previous-month arrivals has the largest SHAP contribution, about +18,343 relative to the background. LIME has local R² 0.936 and predicts about 1,735 arrivals below the ensemble. That local fit is not overall forecast accuracy. Neither explainer establishes causality, and separately perturbed lags can be unrealistic.
+
+These are public aggregate counts rather than personal travel records. Publication terms and source acknowledgement still matter. Data revisions and country mappings affect quality. Uneven market errors could distort budget or service allocation, so retain human review and market-level error checks. The later seasonal-baseline result is a reason not to replace simple benchmarks automatically.
