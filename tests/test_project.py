@@ -51,9 +51,12 @@ class ProjectChecks(unittest.TestCase):
         app = AppTest.from_file(str(folder / 'app.py')).run(timeout=60)
         self.assertFalse(app.exception)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
-        default_target = pd.Period(self.info['default_target'], freq='M')
-        self.assertEqual(app.selectbox(key='picker_year').value, default_target.year)
-        self.assertEqual(app.selectbox(key='picker_month').value, default_target.month)
+        from src.forecast_inputs import forecast_outlook
+        expected, _ = forecast_outlook(self.model, self.info['features'], self.data, self.info['default_inputs']['Country'], self.info['default_target'])
+        self.assertEqual(app.dataframe[0].value['Estimated arrivals'].tolist(), [round(row['Estimated arrivals']) for row in expected])
+        app.select_slider[0].set_value(1).run(timeout=60)
+        self.assertEqual(len(app.dataframe), 0)
+        app.select_slider[0].set_value(3).run(timeout=60)
 
         app.button(key='pick_Germany').click().run(timeout=60)
         self.assertFalse(app.exception)
@@ -66,24 +69,6 @@ class ProjectChecks(unittest.TestCase):
             inputs[f'lag_{lag}'] = int(row.Arrivals.iloc[0])
         prediction = float(self.model.predict(pd.DataFrame([inputs])[self.info['features']])[0])
         self.assertEqual(app.metric[0].value, f'{prediction:,.0f}')
-
-        app.button(key='next_month').click().run(timeout=60)
-        self.assertFalse(app.exception)
-        self.assertEqual(len(app.metric), 0)
-        self.assertTrue(app.info)
-        app.button(key='edit_1').click().run(timeout=60)
-        self.assertIsNone(app.number_input(key='draft_1').value)
-        app.button(key='save_1').click().run(timeout=60)
-        self.assertTrue(app.error)
-        self.assertEqual(len(app.metric), 0)
-        app.number_input(key='draft_1').set_value(0)
-        app.button(key='save_1').click().run(timeout=60)
-        self.assertFalse(app.exception)
-        self.assertEqual(len(app.metric), 1)
-        app.button(key='reset_1').click().run(timeout=60)
-        self.assertEqual(len(app.metric), 0)
-        app.button(key='previous_month').click().run(timeout=60)
-        self.assertIn('Germany', app.metric[0].label)
 
         app.button(key='pick_India').click().run(timeout=60)
         app.button(key='edit_1').click().run(timeout=60)
@@ -108,12 +93,32 @@ class ProjectChecks(unittest.TestCase):
         app.button(key='reset_all').click().run(timeout=60)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
 
-        app.selectbox(key='picker_year').select(target.year - 1)
-        app.selectbox(key='picker_month').select(target.month)
-        app.button(key='go_to_month').click().run(timeout=60)
-        self.assertFalse(app.exception)
-        self.assertEqual(app.session_state['target_month'], str(target - 12))
-        self.assertIn((target - 12).strftime('%B %Y'), app.metric[0].label)
+
+
+    def test_recursive_outlook(self):
+        from src.forecast_inputs import forecast_outlook
+
+        class NextCount:
+            def predict(self, inputs):
+                return inputs.lag_1.to_numpy() + 1
+
+        target = pd.Period(self.info['default_target'], freq='M')
+        country = self.info['default_inputs']['Country']
+        rows, missing = forecast_outlook(NextCount(), self.info['features'], self.data, country, target)
+        expected = self.info['default_inputs']['lag_1']
+        self.assertFalse(missing)
+        self.assertEqual([row['Estimated arrivals'] for row in rows], [expected + 1, expected + 2, expected + 3])
+        future = self.data.iloc[[0]].copy()
+        future['Country'], future['Year_Month'], future['Arrivals'] = country, str(target), 99999999
+        changed, _ = forecast_outlook(NextCount(), self.info['features'], pd.concat([self.data, future]), country, target)
+        self.assertEqual(rows, changed)
+        without_last = self.data.loc[~(self.data.Country.eq(country) & self.data.Year_Month.eq(str(target - 1)))]
+        rows, missing = forecast_outlook(NextCount(), self.info['features'], without_last, country, target)
+        self.assertFalse(rows)
+        self.assertIn(str(target - 1), missing)
+        rows, missing = forecast_outlook(NextCount(), self.info['features'], without_last, country, target, overrides={'lag_1': 0})
+        self.assertEqual(rows[0]['Estimated arrivals'], 1)
+
 
 
 

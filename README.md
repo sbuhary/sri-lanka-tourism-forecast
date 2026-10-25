@@ -42,7 +42,9 @@ The initial app model was retrained on all eligible records through September 20
 | July 2026 | 44,547 |
 | October 2025 | 48,113 |
 
-Changing the market or month automatically loads matching historical counts from the included SLTDA CSV and updates the estimate. Quick picks and month arrows follow the same lookup. Use the pencil beside a count to edit it inline, then Save or Cancel. Edited rows can be reset individually, or together using **Reset all to dataset values**. Changing the market or month clears overrides. Missing history is shown explicitly and the app waits for complete inputs before predicting. Publication delays, revisions and sudden demand changes can affect estimates. No prediction interval is provided.
+The app starts immediately after the latest published month and offers one, two or three forecast months. Changing the market loads its historical counts. The first month uses published counts; later predictions feed back into lag inputs where actual counts are unavailable. The chart and table show each forecast month. Use the pencil to edit a starting count, then Save or Cancel. Each edited row has a reset button; **Reset all to dataset values** clears all overrides. Missing required starting history stops the outlook. No prediction interval is provided.
+
+A separate recursive development check used January, April, July and October 2024 forecast origins with a model trained through 2023. MAE was 286.69, 353.78 and 386.80 at horizons 1, 2 and 3 (710, 709 and 709 cases). The seasonal rule gave 349.45, 322.34 and 266.50. Actual counts after each origin were excluded from inputs. Later horizons have higher errors, and the seasonal baseline was stronger at horizons 2 and 3. These are not independent scores for the deployed refit. See the notebook and [horizon results](models/horizon_results.json).
 
 The data is public and aggregated, with no individual travel records. Country mappings and uneven market errors can affect budget or service decisions, so forecasts need human review.
 

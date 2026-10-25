@@ -1,0 +1,67 @@
+{
+  "scope": "Recursive development check; not an independent test of the deployed refit",
+  "training_period": "2019-01 to 2023-12",
+  "forecast_origins": [
+    "2024-01",
+    "2024-04",
+    "2024-07",
+    "2024-10"
+  ],
+  "method": "Earlier forecasts replace lag counts after each origin. Actual counts at or after the origin are excluded from inputs. Model settings are unchanged.",
+  "scores": [
+    {
+      "Months ahead": 1,
+      "Model": "Extra Trees",
+      "Cases": 710,
+      "MAE": 286.6899397279,
+      "RMSE": 1081.4709534959,
+      "R2": 0.9062510694,
+      "WAPE_pct": 29.8979689353
+    },
+    {
+      "Months ahead": 1,
+      "Model": "Seasonal",
+      "Cases": 710,
+      "MAE": 349.4507042254,
+      "RMSE": 1441.4651857364,
+      "R2": 0.8334498918,
+      "WAPE_pct": 36.4430865947
+    },
+    {
+      "Months ahead": 2,
+      "Model": "Extra Trees",
+      "Cases": 709,
+      "MAE": 353.7825779958,
+      "RMSE": 1441.3402486523,
+      "R2": 0.8420557121,
+      "WAPE_pct": 36.9299403423
+    },
+    {
+      "Months ahead": 2,
+      "Model": "Seasonal",
+      "Cases": 709,
+      "MAE": 322.3356840621,
+      "RMSE": 1326.7284460411,
+      "R2": 0.8661757009,
+      "WAPE_pct": 33.6473255694
+    },
+    {
+      "Months ahead": 3,
+      "Model": "Extra Trees",
+      "Cases": 709,
+      "MAE": 386.803670504,
+      "RMSE": 1638.048943358,
+      "R2": 0.8129325035,
+      "WAPE_pct": 39.5584645325
+    },
+    {
+      "Months ahead": 3,
+      "Model": "Seasonal",
+      "Cases": 709,
+      "MAE": 266.4964739069,
+      "RMSE": 1066.3468992077,
+      "R2": 0.9207240222,
+      "WAPE_pct": 27.2546310053
+    }
+  ]
+}
