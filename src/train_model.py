@@ -24,7 +24,7 @@ def build_pipeline(model):
 
 def train_model():
     data = pd.read_csv(csv_file)
-    # I keep the selected settings and refit using the available history.
+    # Refit the selected settings using all available history.
     train = data.loc[data.Year_Month.between('2019-01', '2026-09')]
     assert not train[features + ['Arrivals']].isna().any().any()
 

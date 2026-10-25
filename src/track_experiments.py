@@ -78,7 +78,6 @@ def track_experiments():
             mlflow.log_metrics(scores)
             mlflow.log_dict(scores, 'validation_metrics.json')
             if name == 'Extra Trees':
-                # I keep the selected settings with the validation run.
                 mlflow.log_dict({'training_period': '2019-01 to 2023-12',
                                  'selected_settings': evaluation['settings']},
                                 'selected_settings.json')
@@ -86,7 +85,7 @@ def track_experiments():
                                 'metrics': scores})
             print(f'{name}: MAE {scores["MAE"]:.3f}')
 
-    # Settings are fixed before this retrospective test; it is not untouched data.
+    # Keep the settings fixed for the later-period check.
     assessment_train = data.loc[data.Year_Month.between('2019-01', '2024-12')]
     assessment = data.loc[data.Year_Month.between('2025-01', '2026-09')]
     assessment = assessment.loc[assessment.Country.isin(assessment_train.Country.unique())]

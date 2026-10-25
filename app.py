@@ -52,8 +52,8 @@ if submitted:
 
 
 with st.expander('About the estimate'):
-    st.write('Extra Trees averages 150 trees with randomly sampled split thresholds. It uses the origin market, calendar month and four historical counts.')
-    st.write('The settings were checked using earlier history, then the model was validated on 2024 data: MAE about 258 arrivals per origin/month and R² 0.904. Random Forest had lower validation error. The deployed Extra Trees model was refitted on eligible history through September 2026; those scores do not evaluate this refit.')
-    st.caption('On previously inspected 2025–September 2026 data, a separate Extra Trees model trained through 2024 had MAE 293; the same-month-last-year baseline was better at 220. This was a retrospective test, not an untouched test. The deployment refit has not been independently evaluated.')
-    st.caption('Published counts may be delayed or revised. The year identifies the historical months; it is not a model input.')
+    st.write('Extra Trees averages 150 trees with random split thresholds. It uses the origin, calendar month and four historical counts.')
+    st.write('Settings were checked using 2023, then validated on 2024: MAE 258 arrivals per origin/month and R² 0.904. Random Forest had lower validation error. The deployed model was retrained through September 2026; those scores describe the earlier model.')
+    st.caption('In a later-period check, a model trained through 2024 had MAE 293, while the seasonal rule had MAE 220. That period had already been explored, so it is not an independent final test.')
+    st.caption('Published counts can be delayed or revised. Year labels the period and is not a model input.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')

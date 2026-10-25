@@ -10,7 +10,7 @@ group="${4:-rg-tourism-forecast}"
 az account set --subscription "$subscription"
 for provider in Microsoft.App Microsoft.OperationalInsights; do
   az provider register --namespace "$provider" --wait
- done
+done
 az group create --name "$group" --location "$region" --output none
 az deployment group create --resource-group "$group" \
   --name tourism-forecast \
