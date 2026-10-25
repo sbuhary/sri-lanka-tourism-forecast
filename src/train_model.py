@@ -7,7 +7,7 @@ import sklearn
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.pipeline import make_pipeline
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 
 folder = Path(__file__).resolve().parents[1]
 csv_file = folder / 'data' / 'Tourism_Arrivals.csv'
@@ -28,8 +28,8 @@ def train_model():
     train = data.loc[data.Year_Month.between('2019-01', '2026-09')]
     assert not train[features + ['Arrivals']].isna().any().any()
 
-    model = build_pipeline(RandomForestRegressor(
-        n_estimators=150, max_depth=12, min_samples_leaf=5, random_state=42, n_jobs=4))
+    evaluation = json.loads((folder / 'models' / 'evaluation_results.json').read_text())
+    model = build_pipeline(ExtraTreesRegressor(**evaluation['settings'], n_jobs=4))
     model.fit(train[features], train.Arrivals)
 
     default_inputs = {'Country': 'India', 'lag_1': 51931, 'lag_2': 47253,
@@ -43,6 +43,7 @@ def train_model():
 
     joblib.dump(model, folder / 'models' / 'deployment_model.joblib')
     metadata = {
+        'model_name': 'Extra Trees', 'settings': evaluation['settings'],
         'training_period': '2019-01 to 2026-09', 'training_rows': len(train),
         'features': features, 'countries': sorted(train.Country.unique().tolist()),
         'sklearn_version': sklearn.__version__,
@@ -50,9 +51,13 @@ def train_model():
         'deployment_default_prediction': prediction,
         'default_inputs': default_inputs, 'default_target': '2026-10',
         'model_role': 'deployment refit; not independently evaluated',
-        'evaluation': 'Selected using training data from 2019-2023 and validation data from 2024; scores describe validation, not the deployment refit',
-        'development_mae': 241.496, 'development_r2': 0.921,
-        'development_wape_pct': 25.957}
+        'evaluation': evaluation['evaluation_scope'],
+        'validation_metrics': evaluation['validation']['Extra Trees'],
+        'retrospective_test_metrics': evaluation['assessment']['Extra Trees'],
+        'retrospective_test_baselines': {name: values for name, values in evaluation['assessment'].items() if name != 'Extra Trees'},
+        'development_mae': evaluation['validation']['Extra Trees']['MAE'],
+        'development_r2': evaluation['validation']['Extra Trees']['R2'],
+        'development_wape_pct': evaluation['validation']['Extra Trees']['WAPE_pct']}
     (folder / 'models' / 'model_info.json').write_text(json.dumps(metadata, indent=2), encoding='utf-8')
     print(f'Saved deployment model ({len(train)} rows). India October 2026 forecast: {prediction:,.2f}')
 

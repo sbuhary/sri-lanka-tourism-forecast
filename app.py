@@ -52,7 +52,8 @@ if submitted:
 
 
 with st.expander('About the estimate'):
-    st.write('A Random Forest combines predictions from 150 decision trees. It uses the origin market, calendar month and the four historical counts.')
-    st.write('Random Forest was selected by comparing models trained on 2019–2023 data and validated on 2024 data. Its validation MAE was about 242 arrivals per origin/month. The selected model was then retrained on all eligible data from 2019 through September 2026 for deployment.')
-    st.caption('The retrained deployment model has not been separately tested. Published counts can be delayed or revised. The year identifies the historical months; it is not a model input.')
+    st.write('Extra Trees averages 150 trees with randomly sampled split thresholds. It uses the origin market, calendar month and four historical counts.')
+    st.write('The settings were checked using earlier history, then the model was validated on 2024 data: MAE about 258 arrivals per origin/month and R² 0.904. Random Forest had lower validation error. The deployed Extra Trees model was refitted on eligible history through September 2026; those scores do not evaluate this refit.')
+    st.caption('On previously inspected 2025–September 2026 data, a separate Extra Trees model trained through 2024 had MAE 293; the same-month-last-year baseline was better at 220. This was a retrospective test, not an untouched test. The deployment refit has not been independently evaluated.')
+    st.caption('Published counts may be delayed or revised. The year identifies the historical months; it is not a model input.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')

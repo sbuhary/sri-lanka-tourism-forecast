@@ -1,4 +1,13 @@
 {
+  "model_name": "Extra Trees",
+  "settings": {
+    "n_estimators": 150,
+    "max_depth": 8,
+    "min_samples_leaf": 10,
+    "max_features": 1.0,
+    "bootstrap": false,
+    "random_state": 42
+  },
   "training_period": "2019-01 to 2026-09",
   "training_rows": 17053,
   "features": [
@@ -210,7 +219,7 @@
   ],
   "sklearn_version": "1.9.1",
   "csv_sha256": "b1886d1337906be587388ade8a4527f649c7e8b931d78624df62facab56379e9",
-  "deployment_default_prediction": 50521.54771101667,
+  "deployment_default_prediction": 44498.876388139324,
   "default_inputs": {
     "Country": "India",
     "lag_1": 51931,
@@ -221,8 +230,34 @@
   },
   "default_target": "2026-10",
   "model_role": "deployment refit; not independently evaluated",
-  "evaluation": "Selected using training data from 2019-2023 and validation data from 2024; scores describe validation, not the deployment refit",
-  "development_mae": 241.496,
-  "development_r2": 0.921,
-  "development_wape_pct": 25.957
+  "evaluation": "2024 development validation and previously inspected 2025-01 to 2026-09 retrospective test; no untouched final test",
+  "validation_metrics": {
+    "MAE": 258.39284456623943,
+    "RMSE": 1111.2996716683072,
+    "R2": 0.9041080819986167,
+    "WAPE_pct": 27.773000033004358
+  },
+  "retrospective_test_metrics": {
+    "MAE": 293.3537491445109,
+    "RMSE": 1365.0215245262486,
+    "R2": 0.895139148942633,
+    "WAPE_pct": 28.77026131259532
+  },
+  "retrospective_test_baselines": {
+    "Previous month": {
+      "MAE": 299.5537958773253,
+      "RMSE": 1175.8987764166095,
+      "R2": 0.922183040875022,
+      "WAPE_pct": 29.37832228053441
+    },
+    "Same month last year": {
+      "MAE": 219.67043740573152,
+      "RMSE": 972.1412738691738,
+      "R2": 0.9468145126342258,
+      "WAPE_pct": 21.54387290172891
+    }
+  },
+  "development_mae": 258.39284456623943,
+  "development_r2": 0.9041080819986167,
+  "development_wape_pct": 27.773000033004358
 }

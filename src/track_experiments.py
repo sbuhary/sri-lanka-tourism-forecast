@@ -27,7 +27,8 @@ def track_experiments():
     import mlflow
 
     dagshub.init(repo_owner='sbuhary', repo_name='sri-lanka-tourism-forecast', mlflow=True)
-    mlflow.set_experiment('Tourism arrivals')
+    mlflow.set_experiment('Tourism arrivals - Extra Trees')
+    evaluation = json.loads((folder / 'models' / 'evaluation_results.json').read_text())
     data = pd.read_csv(folder / 'data' / 'Tourism_Arrivals.csv')
     train = data.loc[data.Year_Month.between('2019-01', '2023-12')]
     validation = data.loc[data.Year_Month.between('2024-01', '2024-12')]
@@ -36,7 +37,7 @@ def track_experiments():
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=folder, text=True).strip()
     assert not subprocess.check_output(['git', 'status', '--porcelain'], cwd=folder, text=True).strip(), 'Commit changes before tracking a run.'
     tags = {'data_sha256': digest, 'source_commit': commit, 'mlflow.source.git.commit': commit,
-            'mlflow.source.name': 'track_experiments.py', 'mlflow.user': 'sbuhary',
+            'mlflow.source.name': 'src/track_experiments.py', 'mlflow.user': 'sbuhary',
             'evaluation_scope': 'development validation; not an independent test'}
 
     forest = build_pipeline(RandomForestRegressor(
@@ -48,7 +49,7 @@ def track_experiments():
         'Random Forest': forest,
         'Histogram boosting': boosting,
         'Extra Trees': build_pipeline(ExtraTreesRegressor(
-            n_estimators=150, max_depth=8, min_samples_leaf=10, random_state=42, n_jobs=4)),
+            **evaluation['settings'], n_jobs=4)),
         'Voting ensemble': VotingRegressor([
             ('forest', clone(forest)), ('boosting', clone(boosting))], weights=[1, 1])}
     run_records = []
@@ -76,15 +77,33 @@ def track_experiments():
             scores = calculate_scores(validation.Arrivals, prediction)
             mlflow.log_metrics(scores)
             mlflow.log_dict(scores, 'validation_metrics.json')
-            if name == 'Random Forest':
+            if name == 'Extra Trees':
                 # I keep the selected settings with the validation run.
                 mlflow.log_dict({'training_period': '2019-01 to 2023-12',
-                                 'selected_settings': {'n_estimators': 150, 'max_depth': 12,
-                                                       'min_samples_leaf': 5, 'random_state': 42}},
+                                 'selected_settings': evaluation['settings']},
                                 'selected_settings.json')
             run_records.append({'name': name, 'role': 'validation', 'run_id': run.info.run_id,
                                 'metrics': scores})
             print(f'{name}: MAE {scores["MAE"]:.3f}')
+
+    # Settings are fixed before this retrospective test; it is not untouched data.
+    assessment_train = data.loc[data.Year_Month.between('2019-01', '2024-12')]
+    assessment = data.loc[data.Year_Month.between('2025-01', '2026-09')]
+    assessment = assessment.loc[assessment.Country.isin(assessment_train.Country.unique())]
+    predictor = clone(models['Extra Trees']).fit(assessment_train[features], assessment_train.Arrivals)
+    for name, prediction in {
+        'Extra Trees': np.maximum(0, predictor.predict(assessment[features])),
+        'Previous month': assessment.lag_1.to_numpy(),
+        'Same month last year': assessment.lag_12.to_numpy()}.items():
+        with mlflow.start_run(run_name=name + ' - retrospective test') as run:
+            mlflow.set_tags({**tags, 'role': 'retrospective_test', 'model_name': name,
+                            'evaluation_scope': 'previously inspected retrospective test; not independent'})
+            mlflow.log_params({'train_period': '2019-01 to 2024-12',
+                               'test_period': '2025-01 to 2026-09', 'test_rows': len(assessment)})
+            scores = calculate_scores(assessment.Arrivals, prediction)
+            mlflow.log_metrics(scores)
+            run_records.append({'name': name, 'role': 'retrospective_test',
+                                'run_id': run.info.run_id, 'metrics': scores})
 
     # The deployment refit is recorded without assigning validation scores to it.
     info = json.loads((folder / 'models' / 'model_info.json').read_text())
@@ -92,17 +111,17 @@ def track_experiments():
     model = joblib.load(folder / 'models' / 'deployment_model.joblib')
     example = pd.DataFrame([info['default_inputs']])[features]
     assert abs(float(model.predict(example)[0]) - info['deployment_default_prediction']) < .001
-    with mlflow.start_run(run_name='Random Forest - deployment') as run:
+    with mlflow.start_run(run_name='Extra Trees - deployment') as run:
         mlflow.set_tags({**tags, 'role': 'deployment', 'evaluation_scope': 'not separately evaluated'})
         mlflow.log_params({'train_period': info['training_period'], 'train_rows': info['training_rows'],
-                           'n_estimators': 150, 'max_depth': 12, 'min_samples_leaf': 5,
-                           'random_state': 42, 'features': ','.join(features)})
+                           **info['settings'], 'features': ','.join(features)})
         mlflow.log_artifact(str(folder / 'models' / 'deployment_model.joblib'), artifact_path='model')
         mlflow.log_artifact(str(folder / 'models' / 'model_info.json'), artifact_path='model')
-        run_records.append({'name': 'Random Forest - deployment', 'role': 'deployment',
+        run_records.append({'name': 'Extra Trees - deployment', 'role': 'deployment',
                             'run_id': run.info.run_id})
     (folder / 'models' / 'tracking_results.json').write_text(json.dumps(
-        {'source_commit': commit, 'data_sha256': digest, 'runs': run_records}, indent=2))
+        {'source_commit': commit, 'data_sha256': digest, 'experiment': 'Tourism arrivals - Extra Trees',
+         'previous_experiment': 'Tourism arrivals (Random Forest implementation; historical)', 'runs': run_records}, indent=2))
     print('Runs and deployment artifacts saved to DagsHub.')
 
 

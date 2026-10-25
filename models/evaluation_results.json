@@ -1,0 +1,99 @@
+{
+  "settings": {
+    "n_estimators": 150,
+    "max_depth": 8,
+    "min_samples_leaf": 10,
+    "max_features": 1.0,
+    "bootstrap": false,
+    "random_state": 42
+  },
+  "tuning": [
+    226.52986713795926,
+    228.3001723573788
+  ],
+  "validation": {
+    "Random Forest": {
+      "MAE": 241.4958168736857,
+      "RMSE": 1007.8368522671909,
+      "R2": 0.9211321317157966,
+      "WAPE_pct": 25.956846217093762
+    },
+    "Voting ensemble": {
+      "MAE": 243.62681795449421,
+      "RMSE": 1006.8922934720791,
+      "R2": 0.9212798945792707,
+      "WAPE_pct": 26.18589394164271
+    },
+    "Extra Trees": {
+      "MAE": 258.39284456623943,
+      "RMSE": 1111.2996716683072,
+      "R2": 0.9041080819986167,
+      "WAPE_pct": 27.773000033004358
+    },
+    "Histogram boosting": {
+      "MAE": 260.44285738018976,
+      "RMSE": 1067.7275228129822,
+      "R2": 0.911480182755505,
+      "WAPE_pct": 27.99334284491573
+    },
+    "Previous month": {
+      "MAE": 286.44902582691435,
+      "RMSE": 1128.7161536075357,
+      "R2": 0.9010788596407313,
+      "WAPE_pct": 30.78858014470111
+    },
+    "Ridge": {
+      "MAE": 286.54115179988867,
+      "RMSE": 1071.3390949347165,
+      "R2": 0.9108803361087343,
+      "WAPE_pct": 30.798482178384553
+    },
+    "Same month last year": {
+      "MAE": 301.6107838695061,
+      "RMSE": 1264.5962136577998,
+      "R2": 0.8758280825290579,
+      "WAPE_pct": 32.418220885427424
+    }
+  },
+  "assessment": {
+    "Extra Trees": {
+      "MAE": 293.3537491445109,
+      "RMSE": 1365.0215245262486,
+      "R2": 0.895139148942633,
+      "WAPE_pct": 28.77026131259532
+    },
+    "Previous month": {
+      "MAE": 299.5537958773253,
+      "RMSE": 1175.8987764166095,
+      "R2": 0.922183040875022,
+      "WAPE_pct": 29.37832228053441
+    },
+    "Same month last year": {
+      "MAE": 219.67043740573152,
+      "RMSE": 972.1412738691738,
+      "R2": 0.9468145126342258,
+      "WAPE_pct": 21.54387290172891
+    }
+  },
+  "train_rows": 10811,
+  "validation_rows": 2207,
+  "assessment_train_rows": 13066,
+  "assessment_rows": 3978,
+  "market_wins": 57,
+  "market_count": 184,
+  "example_prediction": 28951.15230616105,
+  "example_actual": 34399,
+  "shap_base": 293.2150996123207,
+  "shap_contributions": {
+    "Country": 3641.114239305488,
+    "lag_1": 18343.29576475524,
+    "lag_2": 4001.8880380619376,
+    "lag_3": 1862.7414137566175,
+    "lag_12": 805.1583314051459,
+    "month_number": 3.739419264289853
+  },
+  "lime_r2": 0.9356901404366431,
+  "lime_prediction": 27216.455753494243,
+  "lime_gap": -1734.6965526668064,
+  "evaluation_scope": "2024 development validation and previously inspected 2025-01 to 2026-09 retrospective test; no untouched final test"
+}

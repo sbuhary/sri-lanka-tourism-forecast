@@ -34,9 +34,12 @@ class ProjectChecks(unittest.TestCase):
         self.assertEqual(digest, self.info['csv_sha256'])
 
     def test_saved_prediction(self):
+        from sklearn.ensemble import ExtraTreesRegressor
+        self.assertIsInstance(self.model.steps[-1][1], ExtraTreesRegressor)
+        self.assertFalse(self.model.steps[-1][1].bootstrap)
         inputs = pd.DataFrame([self.info['default_inputs']])[self.info['features']]
         prediction = float(self.model.predict(inputs)[0])
-        self.assertAlmostEqual(prediction, 50521.55, delta=0.05)
+        self.assertAlmostEqual(prediction, 44498.88, delta=0.05)
         self.assertAlmostEqual(prediction, self.info['deployment_default_prediction'], places=6)
         inputs.loc[:, ['lag_1', 'lag_2', 'lag_3', 'lag_12']] = 0
         self.assertTrue(np.isfinite(self.model.predict(inputs)).all())
@@ -47,7 +50,7 @@ class ProjectChecks(unittest.TestCase):
         self.assertFalse(app.exception)
         app.button[0].click().run(timeout=60)
         self.assertFalse(app.exception)
-        self.assertEqual(app.metric[0].value, '50,522')
+        self.assertEqual(app.metric[0].value, '44,499')
         self.assertIn('October 2026', app.metric[0].label)
 
 
