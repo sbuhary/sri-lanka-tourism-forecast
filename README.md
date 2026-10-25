@@ -71,12 +71,12 @@ Commit local changes first so each run points to the code that produced it. The 
 
 The script reproduces the notebook comparisons on 2024 development data and records parameters, metrics, the data hash and source commit. A separate deployment run stores the refitted model and its training record, without assigning the validation scores to that refit. Tracking dependencies are separate from the app requirements.
 
-Historical Random Forest runs remain in the original DagsHub experiment. The new Extra Trees experiment is configured to record seven validation comparisons, three retrospective assessments and a separate deployment artifact. Until new tracking completes, tracking_results.json is explicitly labelled historical. [tracking_results.json](models/tracking_results.json) records their IDs, metrics and source revision. Do not assign old Random Forest metrics or artifact checks to the updated Extra Trees model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
+Historical Random Forest runs remain in the original DagsHub experiment. The Extra Trees experiment now contains seven validation comparisons, three retrospective assessments and a separate deployment run. All eleven runs were verified as finished; remote metrics match the notebook and downloaded deployment artifacts are byte-identical to the current model and metadata. [tracking_results.json](models/tracking_results.json) records their IDs, metrics and source revision. Do not assign old Random Forest metrics or artifact checks to the updated Extra Trees model. Tracking is run on demand; GitHub Actions currently rebuilds and tests the app without logging new DagsHub runs.
 
 
 ## Azure deployment
 
-The original Random Forest deployment was verified in East US on 24 October 2026. The Extra Trees release passed [both model and container checks](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40174959817) on 25 October and is awaiting production approval. Its verified local default forecast is 44,499; do not treat the previous Azure release as the updated model until deployment succeeds.
+The Extra Trees [approved release](https://github.com/sbuhary/sri-lanka-tourism-forecast/actions/runs/40174959817) passed both required checks, OIDC login, Bicep deployment and live health on 25 October 2026. The live form returned **44,499**, matching the saved model. Azure serves image digest `sha256:65ee5362df2271f53540a7a4f7ceee0a3e01e416a31ca3084aa13f0a124fcfdc`, revision `tourism-forecast--0000003`.
 
 The initial deployment used a personal Azure trial; the same template can recreate it in another subscription.
 

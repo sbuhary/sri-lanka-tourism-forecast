@@ -1,11 +1,13 @@
 {
-  "source_commit": "6b09618a33d94e6dea0a9fec436ef0de7bf77518",
+  "source_commit": "eca4d99fcbea85211bc2842ae219fd8509173d23",
   "data_sha256": "b1886d1337906be587388ade8a4527f649c7e8b931d78624df62facab56379e9",
+  "experiment": "Tourism arrivals - Extra Trees",
+  "previous_experiment": "Tourism arrivals (Random Forest implementation; historical)",
   "runs": [
     {
       "name": "Ridge",
       "role": "validation",
-      "run_id": "816d8a3be47a4e13aa0fe8c2d269b8b9",
+      "run_id": "f0fe7222bb8a412a90b89e2962b3eec7",
       "metrics": {
         "MAE": 286.54115179988867,
         "RMSE": 1071.3390949347165,
@@ -16,7 +18,7 @@
     {
       "name": "Random Forest",
       "role": "validation",
-      "run_id": "98c785276f93447aa61955cfa4682397",
+      "run_id": "b20eb2c4cb15430da84bc423e0b0bf69",
       "metrics": {
         "MAE": 241.4958168736857,
         "RMSE": 1007.8368522671909,
@@ -27,7 +29,7 @@
     {
       "name": "Histogram boosting",
       "role": "validation",
-      "run_id": "146e507ab3214fd68e9d20a0110b9ec6",
+      "run_id": "8f1758c409ab421593738175e5a6c929",
       "metrics": {
         "MAE": 260.44285738018976,
         "RMSE": 1067.7275228129822,
@@ -38,10 +40,10 @@
     {
       "name": "Extra Trees",
       "role": "validation",
-      "run_id": "d5e2d69458954008a77fef5377d1546e",
+      "run_id": "5c7a744bebb04f71a97bfacf9cd63bd2",
       "metrics": {
         "MAE": 258.39284456623943,
-        "RMSE": 1111.299671668307,
+        "RMSE": 1111.2996716683072,
         "R2": 0.9041080819986167,
         "WAPE_pct": 27.773000033004358
       }
@@ -49,7 +51,7 @@
     {
       "name": "Voting ensemble",
       "role": "validation",
-      "run_id": "362d4433d6d6499a9dc377395be30569",
+      "run_id": "c8b4123631924abd839e7c9e0791d075",
       "metrics": {
         "MAE": 243.62681795449421,
         "RMSE": 1006.8922934720791,
@@ -60,7 +62,7 @@
     {
       "name": "Previous month",
       "role": "validation",
-      "run_id": "9c498b058b794054b1e15fd7e153df10",
+      "run_id": "22650466408147d6a8524d4587d35d55",
       "metrics": {
         "MAE": 286.44902582691435,
         "RMSE": 1128.7161536075357,
@@ -71,7 +73,7 @@
     {
       "name": "Same month last year",
       "role": "validation",
-      "run_id": "2e7225d1070548958c1e43bdc534f5d1",
+      "run_id": "1935c7c07f8548e3aac3aa551b831b4e",
       "metrics": {
         "MAE": 301.6107838695061,
         "RMSE": 1264.5962136577998,
@@ -80,10 +82,42 @@
       }
     },
     {
-      "name": "Random Forest - deployment",
+      "name": "Extra Trees",
+      "role": "retrospective_test",
+      "run_id": "dfbeed3078b2447eaa6c23650582e4bd",
+      "metrics": {
+        "MAE": 293.3537491445109,
+        "RMSE": 1365.0215245262486,
+        "R2": 0.895139148942633,
+        "WAPE_pct": 28.77026131259532
+      }
+    },
+    {
+      "name": "Previous month",
+      "role": "retrospective_test",
+      "run_id": "bbc56334b6f840979ec6116d9e16e8fa",
+      "metrics": {
+        "MAE": 299.5537958773253,
+        "RMSE": 1175.8987764166095,
+        "R2": 0.922183040875022,
+        "WAPE_pct": 29.37832228053441
+      }
+    },
+    {
+      "name": "Same month last year",
+      "role": "retrospective_test",
+      "run_id": "cfa3beb5e95e4551bd9e4406a1d031f3",
+      "metrics": {
+        "MAE": 219.67043740573152,
+        "RMSE": 972.1412738691738,
+        "R2": 0.9468145126342258,
+        "WAPE_pct": 21.54387290172891
+      }
+    },
+    {
+      "name": "Extra Trees - deployment",
       "role": "deployment",
-      "run_id": "691b9349b9c54cd2b92dd71da4596c2b"
+      "run_id": "575c77c478034851936603e44adf24e8"
     }
-  ],
-  "status": "Historical Random Forest runs; Extra Trees tracking update pending"
+  ]
 }
