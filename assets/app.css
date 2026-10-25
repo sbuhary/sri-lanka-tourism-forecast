@@ -85,7 +85,7 @@
 .history-label small { display: block; margin-top: 3px; color: #526b64; font-size: .81rem; }
 .history-value { font-size: 1.12rem; font-weight: 600; text-align: right; white-space: nowrap; }
 .history-value small { display: block; color: #85513e; font-size: .72rem; font-weight: 500; margin-top: 3px; }
-[class*="st-key-history_row_"] button[kind="tertiary"] { min-width: 32px; min-height: 40px; color: #086d68; font-size: 1.1rem; padding: 4px; }
+[class*="st-key-history_row_"] button[kind="tertiary"] { width: 36px; min-width: 36px; height: 40px; min-height: 40px; color: #086d68; padding: 0; border-radius: 8px; justify-content: center; }
 [class*="st-key-history_row_"] [data-testid="stForm"] { border: 0; padding: 0; }
 [class*="st-key-history_row_"] [data-testid="stNumberInput"] button { display: none; }
 .forecast-column { position: relative; }
@@ -97,3 +97,7 @@
   [class*="st-key-history_row_"] [data-testid="stColumn"] { min-width: 0; }
   .history-value { font-size: .94rem; }
 }
+
+[class*="st-key-history_row_"] button[kind="tertiary"]:hover { background: #e4f3ed; }
+[class*="st-key-history_row_"] [data-testid="stIconMaterial"] { font-size: 21px; }
+[class*="st-key-history_row_"] > [data-testid="stVerticalBlock"] { gap: 0; }

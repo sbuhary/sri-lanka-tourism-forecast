@@ -170,19 +170,23 @@ with setup:
                                 st.session_state.editing_lag = None
                                 st.rerun()
                 else:
-                    label, number, pencil, reset = st.columns([1.45, 1, .28, .28], gap='small', vertical_alignment='center')
+                    is_edited = field in st.session_state.overrides
+                    widths = [1.45, 1, .25, .25] if is_edited else [1.45, 1, .25]
+                    row = st.columns(widths, gap='small', vertical_alignment='center')
+                    label, number, pencil = row[:3]
                     label.html(f'<div class="history-label"><strong>{period_label}</strong><small>{descriptions[lag]}</small></div>')
                     display = 'Not in dataset' if value is None else f'{value:,}'
                     edited = '<small>Edited</small>' if field in st.session_state.overrides else ''
                     number.html(f'<div class="history-value">{display}{edited}</div>')
-                    pencil.button('✎', key=f'edit_{lag}', type='tertiary', help=f'Edit {period_label} count',
+                    pencil.button('', icon=':material/edit_square:', key=f'edit_{lag}', type='tertiary', help=f'Edit {period_label} count',
                                   on_click=begin_edit, args=(lag,))
                     if field in st.session_state.overrides:
-                        reset.button('↺', key=f'reset_{lag}', type='tertiary', help=f'Restore {period_label} dataset count',
+                        row[3].button('', icon=':material/restart_alt:', key=f'reset_{lag}', type='tertiary', help=f'Restore {period_label} dataset count',
                                      on_click=reset_value, args=(lag,))
         if custom:
             st.button('Reset all to dataset values', key='reset_all', type='tertiary', on_click=reset_history)
         st.caption('Changing the market or month loads matching data and clears edits.')
+        st.caption('One month ahead: the previous three monthly counts and the same month last year must be available.')
         st.caption(f'SLTDA data available through {pd.Period(data.Year_Month.max(), freq="M").strftime("%B %Y")}.')
 
 with result:
