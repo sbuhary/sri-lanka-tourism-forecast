@@ -113,3 +113,7 @@ infra/       Azure configuration
 ```
 
 Banner: supplied SLTDA coastal photograph, [source](https://www.sltda.gov.lk/images/statistics-cover-new.jpg).
+
+## Additional comparisons
+
+`notebooks/Tourism_Model_Comparison.ipynb` compares 13 ensemble approaches and two baselines. It has its own installation cell; the app does not need these extra libraries. The main notebook includes a short results summary. Extra Trees remains the deployed model; the comparison vote has lower 2024 MAE, while the seasonal baseline is stronger in the later period and at the third forecast step.
