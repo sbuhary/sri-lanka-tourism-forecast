@@ -1,4 +1,5 @@
-"""Download SLTDA country tables and prepare a reviewed dataset update."""
+"""Download SLTDA tables, check the counts and prepare a data update."""
+
 from collections import Counter
 from datetime import datetime, timezone
 from html.parser import HTMLParser

@@ -1,3 +1,5 @@
+"""Check the dataset, saved model, forecast rules and app controls."""
+
 from pathlib import Path
 import hashlib
 import json
@@ -50,10 +52,15 @@ class ProjectChecks(unittest.TestCase):
     def test_app(self):
         app = AppTest.from_file(str(folder / 'app.py')).run(timeout=60)
         self.assertFalse(app.exception)
-        self.assertEqual(len(app.table), 1)
-        self.assertEqual(len(app.table[0].value), 8)
+        self.assertEqual(len(app.table), 2)
+        self.assertEqual(len(app.table[0].value), 6)
         self.assertIn('Extra Trees', app.table[0].value.index)
-        self.assertIn('Seasonal baseline', app.table[0].value.index)
+        self.assertIn('Same month last year', app.table[1].value.index)
+        self.assertEqual(len(app.dataframe[0].value), 200)
+        self.assertEqual([tab.label for tab in app.tabs], ['Forecast', 'Data', 'Model'])
+        app.selectbox(key='data_market').set_value('Germany').run(timeout=60)
+        self.assertTrue(app.dataframe[0].value.Country.eq('Germany').all())
+        app.selectbox(key='data_market').set_value('All markets').run(timeout=60)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
         from src.forecast_inputs import forecast_outlook
         expected, _ = forecast_outlook(self.model, self.info['features'], self.data, self.info['default_inputs']['Country'], self.info['default_target'])

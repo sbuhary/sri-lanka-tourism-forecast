@@ -1,3 +1,5 @@
+"""Log the original model comparisons and app model to DagsHub with MLflow."""
+
 from pathlib import Path
 import hashlib
 import json

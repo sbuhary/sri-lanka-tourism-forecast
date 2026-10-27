@@ -1,3 +1,5 @@
+"""Train the Extra Trees model used by the app and save its settings."""
+
 from pathlib import Path
 import json
 import hashlib

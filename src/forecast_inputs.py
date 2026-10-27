@@ -1,4 +1,5 @@
-"""Look up the published monthly counts needed by the forecast."""
+"""Look up past arrival counts and make forecasts for up to three months."""
+
 import pandas as pd
 
 lags = [12, 3, 2, 1]

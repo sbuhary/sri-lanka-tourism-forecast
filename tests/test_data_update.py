@@ -1,3 +1,5 @@
+"""Check source-table reading, country names and historical feature preparation."""
+
 from io import BytesIO
 from pathlib import Path
 import sys
