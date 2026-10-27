@@ -50,6 +50,10 @@ class ProjectChecks(unittest.TestCase):
     def test_app(self):
         app = AppTest.from_file(str(folder / 'app.py')).run(timeout=60)
         self.assertFalse(app.exception)
+        self.assertEqual(len(app.table), 1)
+        self.assertEqual(len(app.table[0].value), 8)
+        self.assertIn('Extra Trees', app.table[0].value.index)
+        self.assertIn('Seasonal baseline', app.table[0].value.index)
         self.assertEqual(app.metric[0].value, f"{self.info['deployment_default_prediction']:,.0f}")
         from src.forecast_inputs import forecast_outlook
         expected, _ = forecast_outlook(self.model, self.info['features'], self.data, self.info['default_inputs']['Country'], self.info['default_target'])

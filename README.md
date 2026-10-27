@@ -25,11 +25,11 @@ Extra Trees averages 150 trees with random split thresholds. Each tree uses all 
 
 ## Results
 
-Training on 2019–2023 and validating on 2024 gave Extra Trees MAE **258.39**, RMSE **1,111.30**, R² **0.904** and WAPE **27.77%**. Random Forest had lower MAE (**241.50**), followed by voting (**243.63**). Extra Trees is the main algorithm studied here, but it was not the best model in this comparison. R² is not percentage accuracy.
+Training on 2019–2023 and validating on 2024 gave Extra Trees MAE **258.39**, RMSE **1,111.30**, R² **0.904** and WAPE **27.77%**. The forest/CatBoost/LightGBM vote had MAE **227.10**, CatBoost **232.30** and tuned Random Forest **235.84**. CatBoost had the highest R² at **0.941**. Extra Trees is the main algorithm studied here, but it was not the best model in this comparison. R² is not percentage accuracy.
 
 After training through 2024, I checked January 2025–September 2026. MAE was **293.35** for Extra Trees, **299.55** for the previous-month rule and **219.67** for the same-month-last-year rule. I had already examined this period, so it is not an independent final test. These checks use actual earlier counts.
 
-Extra Trees beats the previous-month rule for only 57 of 184 validation markets. The notebook includes the market errors and SHAP/LIME explanations. [Evaluation records](models/evaluation_results.json) hold the settings and scores.
+Extra Trees beats the previous-month rule for only 57 of 184 validation markets. The notebook includes the market errors and SHAP/LIME explanations. [Original evaluation records](models/evaluation_results.json) retain the first fixed-setting comparisons. The merged notebook and [current comparison](models/comparison_results.json) include the later tuned alternatives.
 
 ## Using the app
 
@@ -54,7 +54,7 @@ python -m pip install -r requirements-tracking.txt
 python src/track_experiments.py
 ```
 
-Commit changes before tracking. [DagsHub](https://dagshub.com/sbuhary/sri-lanka-tourism-forecast/experiments) holds seven validation runs, three later-period runs and a separate app-model run. Run IDs and code versions are in [tracking_results.json](models/tracking_results.json). Tracking is manual. Credentials stay outside the repo.
+Commit changes before tracking. [DagsHub](https://dagshub.com/sbuhary/sri-lanka-tourism-forecast/experiments) holds seven validation runs, three later-period runs and a separate app-model run. Run IDs and code versions are in [tracking_results.json](models/tracking_results.json). The merged notebook records the additional comparisons; they have not been logged to DagsHub. Tracking is manual. Credentials stay outside the repo.
 
 ## Azure deployment
 
@@ -114,6 +114,8 @@ infra/       Azure configuration
 
 Banner: supplied SLTDA coastal photograph, [source](https://www.sltda.gov.lk/images/statistics-cover-new.jpg).
 
-## Additional comparisons
+## Notebook analysis
 
-`notebooks/Tourism_Model_Comparison.ipynb` compares 13 ensemble approaches and two baselines. It has its own installation cell; the app does not need these extra libraries. The main notebook includes a short results summary. Extra Trees remains the deployed model; the comparison vote has lower 2024 MAE, while the seasonal baseline is stronger in the later period and at the third forecast step.
+`notebooks/Tourism_Arrivals_Analysis.ipynb` contains data exploration, chronological splits, tuning, six ensemble approaches, two historical baselines, later-period and recursive checks, and SHAP/LIME explanations. Run the cells in order. Its installation cell adds the comparison libraries; the app does not need them.
+
+Extra Trees remains the algorithm studied and deployed. The Random Forest/CatBoost/LightGBM vote has lower 2024 MAE, while the seasonal baseline is stronger in the later period and at three months. The app's collapsed model section shows historical scores from `models/comparison_results.json`; they do not evaluate the deployment refit.

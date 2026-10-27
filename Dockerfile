@@ -15,7 +15,7 @@ COPY src/forecast_inputs.py ./src/forecast_inputs.py
 COPY data/Tourism_Arrivals.csv ./data/Tourism_Arrivals.csv
 COPY assets/ ./assets/
 COPY .streamlit/config.toml ./.streamlit/config.toml
-COPY models/deployment_model.joblib models/model_info.json ./models/
+COPY models/deployment_model.joblib models/model_info.json models/comparison_results.json ./models/
 USER app
 EXPOSE 8501
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s \

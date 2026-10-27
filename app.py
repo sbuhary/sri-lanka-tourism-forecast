@@ -225,8 +225,18 @@ with st.expander('View or adjust starting inputs', expanded=not complete):
 
 with st.expander('About the model and evaluation'):
     st.write(f'Extra Trees averages 150 decision trees. The deployed model was trained on {info["training_rows"]:,} monthly records from {training_start} to {training_end}. It uses the market, calendar month and four historical counts. For later months, earlier predictions replace unavailable counts.')
-    st.write('A check on 2023 selected the depth and leaf size. The tree count was fixed at 150. Training on 2019–2023 gave MAE 258 and R² 0.904 on 2024 validation. Random Forest had lower error. These scores describe that evaluation model. The app model has not been tested on new data.')
+    st.write('A check on 2023 selected the depth and leaf size. The tree count was fixed at 150. Training on 2019–2023 gave MAE 258 and R² 0.904 on 2024 validation. Other ensembles had lower error. These scores describe that evaluation model. The app model has not been tested on new data.')
     st.caption('In a later check on January 2025–September 2026, MAE was 293 for Extra Trees and 220 for the seasonal rule. This period had already been examined. R² is not percentage accuracy.')
+    st.markdown('#### Historical model comparison')
+    comparison_record = json.loads((root / 'models/comparison_results.json').read_text(encoding='utf-8'))
+    comparison_table = pd.DataFrame(comparison_record['validation']).set_index('Model')[['MAE', 'R2']]
+    comparison_table = comparison_table.rename(columns={'R2': 'R²', 'WAPE_pct': 'WAPE %'})
+    st.caption('Trained on 2019–2023 and compared on the same 2,207 market-month records in 2024. Settings were selected using 2023 within training; voting uses fixed base settings. MAE is average error in arrivals; lower is better.')
+    st.table(comparison_table.style.format({'MAE': '{:,.2f}', 'R²': '{:.3f}'}))
+    st.write(f'Voting averages Random Forest, CatBoost and LightGBM. It has the lowest average absolute error here; CatBoost has the highest R². Extra Trees remains the model used for the forecasts above. These historical scores do not evaluate the app model retrained through {training_end}.')
+    st.caption('The baselines repeat either the previous month or the same month last year. They do not learn from training data. R² is not percentage accuracy.')
+    if comparison_record['dataset_sha256'] != info['csv_sha256']:
+        st.caption('The comparison uses an earlier dataset snapshot; the app has since been updated.')
     st.caption('History comes from the available SLTDA dataset. Comparison percentages describe estimated changes, not accuracy. Edits affect this outlook only. Delayed or revised data and sudden travel disruptions can affect forecasts. No prediction interval is calculated.')
     st.link_button('View SLTDA data', 'https://www.sltda.gov.lk/en/tourist-arrivals-from-all-countries')
 

@@ -20,6 +20,7 @@ on:
       - models/deployment_model.joblib
       - models/model_info.json
       - models/evaluation_results.json
+      - models/comparison_results.json
       - infra/**
       - .github/workflows/container.yml
 

@@ -6,6 +6,7 @@
 models/*
 !models/deployment_model.joblib
 !models/model_info.json
+!models/comparison_results.json
 
 !assets/
 !assets/app.css
