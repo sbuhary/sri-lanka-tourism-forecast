@@ -44,7 +44,7 @@ The notebook contains tuning, all comparisons, market errors, three-month checks
 
 **Forecast:** choose a market and one to three months ahead. Starting counts load from the dataset and can be edited or reset. Later forecasts reuse earlier predictions. Missing required history stops the forecast.
 
-**Data:** view the prepared rows, read the column meanings and download the selected data.
+**Data:** filter prepared rows by market, year and month. Dates appear as year and month, followed by the market, calendar month and arrival counts. Download the selected rows as CSV.
 
 **Model:** view the model details, trained-model results and separate simple-rule results.
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 from html import escape
 import base64
+import calendar
 import json
 import joblib
 import pandas as pd
@@ -155,7 +156,8 @@ with forecast_tab:
                 value_label = f'{value:,.0f}' if pd.notna(value) else 'Missing'
                 height = value / largest * 175 if pd.notna(value) else 0
                 detail = f'{period.strftime("%B %Y")}: {value_label} arrivals · {"Forecast" if is_forecast else "Published"}'
-                bars.append(f'<div class="bar-column{boundary}" tabindex="0" title="{detail}" aria-label="{detail}"><span class="bar-value">{value_label}</span>'
+                separator = '<span class="forecast-boundary" aria-hidden="true"></span>' if index == 12 else ''
+                bars.append(f'<div class="bar-column{boundary}" tabindex="0" title="{detail}" aria-label="{detail}">{separator}<span class="bar-value">{value_label}</span>'
                             f'<div class="{bar_class}" style="height:{height:.1f}px"></div></div>')
                 boundary_label = ' class="forecast-label"' if index == 12 else ''
                 suffix = ' est.' if is_forecast else ''
@@ -230,14 +232,32 @@ with forecast_tab:
 with data_tab:
     st.subheader('Tourist arrivals data')
     st.write('This is the prepared dataset used in the notebook. Each row is one market in one month. Rows without enough history were left out.')
-    view_market = st.selectbox('Market to view', ['All markets'] + info['countries'], key='data_market')
-    view_data = data if view_market == 'All markets' else data.loc[data.Country.eq(view_market)]
-    st.caption(f'Showing {min(200, len(view_data)):,} of {len(view_data):,} selected rows · {data.Year_Month.min()} to {data.Year_Month.max()}.')
-    st.dataframe(view_data.head(200), hide_index=True, width='stretch', column_config={
-        'Year_Month': 'Month', 'Country': 'Market', 'Arrivals': st.column_config.NumberColumn('Actual arrivals', format='%d'),
+    market_filter, year_filter, month_filter = st.columns([2, 1, 1])
+    view_market = market_filter.selectbox('Market to view', ['All markets'] + info['countries'], key='data_market')
+    periods = pd.PeriodIndex(data.Year_Month, freq='M')
+    view_year = year_filter.selectbox('Year', ['All years'] + sorted(periods.year.unique().tolist(), reverse=True), key='data_year')
+    view_month = month_filter.selectbox('Month', ['All months'] + list(range(1, 13)), key='data_month',
+        format_func=lambda value: value if isinstance(value, str) else calendar.month_name[value])
+    selected = pd.Series(True, index=data.index)
+    if view_market != 'All markets':
+        selected &= data.Country.eq(view_market)
+    if view_year != 'All years':
+        selected &= periods.year == view_year
+    if view_month != 'All months':
+        selected &= data.month_number.eq(view_month)
+    view_data = data.loc[selected]
+    st.caption(f'Showing {min(200, len(view_data)):,} of {len(view_data):,} selected rows. Available data: {data.Year_Month.min()} to {data.Year_Month.max()}.')
+    display_data = view_data[['Year_Month', 'Country', 'month_number', 'Arrivals', 'lag_1', 'lag_2', 'lag_3', 'lag_12']].copy()
+    display_data['Year_Month'] = pd.to_datetime(display_data.Year_Month, format='%Y-%m').dt.strftime('%Y %B')
+    if view_data.empty:
+        st.info('No records match these filters.')
+    st.dataframe(display_data.head(200), hide_index=True, width='stretch', column_config={
+        'Year_Month': 'Year and month', 'Country': 'Market', 'month_number': 'Calendar month',
+        'Arrivals': st.column_config.NumberColumn('Actual arrivals', format='%d'),
         'lag_1': '1 month earlier', 'lag_2': '2 months earlier', 'lag_3': '3 months earlier',
-        'lag_12': 'Same month last year', 'month_number': 'Calendar month'})
-    st.download_button('Download selected data CSV', view_data.to_csv(index=False), 'tourism_arrivals_data.csv', 'text/csv', key='download_data')
+        'lag_12': 'Same month last year'})
+    st.download_button('Download selected data CSV', view_data.to_csv(index=False), 'tourism_arrivals_data.csv',
+                       'text/csv', key='download_data', disabled=view_data.empty)
     with st.expander('Column meanings'):
         st.write('Actual arrivals is the count to predict. The four history columns contain actual earlier counts for the same market. Calendar month runs from 1 to 12. Month identifies the period; year is not a model input.')
         st.write('The 2018 counts supply the first annual lag. Clear country-name differences were corrected and genuine zeros were kept. Totals match the available SLTDA tables, but country labels and later revisions can still affect results.')
