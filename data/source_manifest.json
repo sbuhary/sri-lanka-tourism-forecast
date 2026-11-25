@@ -43,11 +43,11 @@
     },
     {
       "year": 2026,
-      "url": "https://www.sltda.gov.lk/storage/common_media/All_Countries_Jan-Sep%20_2026.xlsx",
-      "sha256": "17734108c85efe35beada837ff281326cec1c4e7ffd1c21c21cacb7e2bd47982"
+      "url": "https://www.sltda.gov.lk/storage/common_media/AllCountriesJanOct%202026.xlsx",
+      "sha256": "6ddf2ce00c2ee8700cd55018c066e9a45ad3b51292aebb3d28c1009624a72fb0"
     }
   ],
   "first_month": "2019-01",
-  "latest_month": "2026-09",
-  "eligible_rows": 17053
+  "latest_month": "2026-10",
+  "eligible_rows": 17254
 }
