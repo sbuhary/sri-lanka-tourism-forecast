@@ -2,6 +2,7 @@ from pathlib import Path
 from html import escape
 import base64
 import calendar
+import hashlib
 import json
 import joblib
 import pandas as pd
@@ -13,15 +14,19 @@ st.set_page_config(page_title='Sri Lanka Tourist Arrivals Forecast', page_icon='
 st.html(f'<style>{(root / "assets/app.css").read_text(encoding="utf-8-sig")}</style>')
 
 
+def file_digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 @st.cache_resource
-def load_model():
+def load_model(model_digest, info_digest):
     model = joblib.load(root / 'models/deployment_model.joblib')
     info = json.loads((root / 'models/model_info.json').read_text(encoding='utf-8'))
     return model, info
 
 
 @st.cache_data
-def load_history():
+def load_history(csv_digest):
     return pd.read_csv(root / 'data/Tourism_Arrivals.csv')
 
 
@@ -30,8 +35,11 @@ def banner_image():
     return base64.b64encode((root / 'assets/coast.jpg').read_bytes()).decode()
 
 
-model, info = load_model()
-data = load_history()
+model, info = load_model(
+    file_digest(root / 'models/deployment_model.joblib'),
+    file_digest(root / 'models/model_info.json'),
+)
+data = load_history(file_digest(root / 'data/Tourism_Arrivals.csv'))
 default_target = pd.Period(info['default_target'], freq='M')
 training_start, training_end = [pd.Period(value, freq='M').strftime('%B %Y')
                                 for value in info['training_period'].split(' to ')]
